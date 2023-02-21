@@ -7,8 +7,8 @@ import { useState, useEffect } from 'react';
 
 function App() {
 
-  const [products, setProducts] = useState(null)
-  const [shelves, setShelves] = useState(null)
+  const [products, setProducts] = useState([])
+  const [shelves, setShelves] = useState([])
 
   useEffect(() => {
     fetch("/api/products")
