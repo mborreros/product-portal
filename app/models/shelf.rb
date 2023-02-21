@@ -1,7 +1,6 @@
 class Shelf < ApplicationRecord
 
-  has_many :products_shelves
-  has_many :products, through: :products_shelves
+  has_many :products
 
   validates :name, presence: true
 

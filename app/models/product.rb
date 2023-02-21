@@ -1,11 +1,10 @@
 class Product < ApplicationRecord
 
-  has_many :products_shelves
-  has_many :shelves, through: :products_shelves
+  belongs_to :shelf
 
   validates :name, presence: true
   validates :lot_number, presence: true
   validates :weight, presence: true
-  validates :complete, presence: true
+  validates :shelf_id, presence: true
 
 end
