@@ -69,3 +69,8 @@
   height: 32px;
   width: 150px;
 }
+
+.barcode-wrap {
+  border: 3px dashed #999;
+}
+

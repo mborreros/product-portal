@@ -1,6 +1,5 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Navigation from './navbar';
 import ProductsTable from './products_table';
 
 import { useState, useEffect } from 'react';
@@ -26,7 +25,6 @@ function App() {
 
   return (
     <div>
-      <Navigation />
       <ProductsTable products={products} setProducts={setProducts} shelves={shelves} />
     </div>
   );

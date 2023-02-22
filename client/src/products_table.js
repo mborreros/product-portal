@@ -1,8 +1,9 @@
 import { Container, Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
-import React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import FilterComponent from './product_filter';
+import Barcode from 'react-barcode';
+import { useReactToPrint } from 'react-to-print';
 
 function ProductsTable({ products, setProducts, shelves }) {
 
@@ -14,12 +15,19 @@ function ProductsTable({ products, setProducts, shelves }) {
     shelf_id: 0
   }
 
+  const barcodeRef = useRef();
+
   const [productFormValues, setProductFormValues] = useState(defaultProductFormValues);
   const [productModalShow, setProductModalShow] = useState(false);
+  const [printModalShow, setPrintModalShow] = useState(false);
   const [editing, setEditing] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
+  const [barcode, setBarcode] = useState("");
 
+  const filteredProducts = products.filter(item => item.name && item.name.toLowerCase().includes(filterText.toLowerCase()));
+
+  // modal functions
   const handleModalClose = () => {
     setProductModalShow(false);
     setEditing(false);
@@ -27,6 +35,9 @@ function ProductsTable({ products, setProducts, shelves }) {
   };
   const handleModalShow = () => setProductModalShow(true);
 
+  const handlePrintModalClose = () => setPrintModalShow(false)
+
+  // data table columns
   const columns = [
     {
       name: 'Name',
@@ -49,8 +60,8 @@ function ProductsTable({ products, setProducts, shelves }) {
       sortable: true,
     },
     {
-      text: "Action",
-      className: "action",
+      text: "Edit",
+      className: "edit",
       width: 100,
       align: "left",
       sortable: false,
@@ -71,8 +82,8 @@ function ProductsTable({ products, setProducts, shelves }) {
       sortable: true,
     },
     {
-      text: "Action",
-      className: "action",
+      text: "Check Out",
+      className: "check-out",
       width: 100,
       align: "left",
       sortable: false,
@@ -83,6 +94,23 @@ function ProductsTable({ products, setProducts, shelves }) {
             disabled={record.complete}
             onClick={() => handleCheckOutButton(record)}>
             Check Out
+          </Button>
+        );
+      },
+    },
+    {
+      text: "Print",
+      className: "print",
+      width: 100,
+      align: "left",
+      sortable: false,
+      cell: (record) => {
+        return (
+          <Button
+            className="btn btn-success btn-sm"
+            disabled={record.complete}
+            onClick={() => handleBarcodePrint(record)}>
+            Label
           </Button>
         );
       },
@@ -161,16 +189,39 @@ function ProductsTable({ products, setProducts, shelves }) {
       })
   }
 
-  const filteredProducts = products.filter(item => item.name && item.name.toLowerCase().includes(filterText.toLowerCase()));
+  // function handleBarcodeCreation(record) {
+  //   console.log(record)
+  // setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
+  //   // launchPrintModal(barcode)
+  // }
 
-  // const FilterComponent = ({ filterText, onFilter, onClear }) => (
-  //   <Row className='flex-nowrap'>
-  //     <Form.Control className="filter-input" id="search" type="text" placeholder="Filter Products By Name" value={filterText} onChange={onFilter} />
-  //     <Button type="button" onClick={onClear} size="sm" variant="light" className='clear-filter-button'>X</Button>
-  //   </Row>
-  // );
+  // const PrintBarcode = (record) => {
+  //   console.log(barcodeRef)
+  //   setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
+  //   //console.log('print');  
+  //   let printContents = <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' />;
+  //   let originalContents = document.body.innerHTML;
+  //   document.body.innerHTML = printContents;
+  //   window.print();
+  //   document.body.innerHTML = originalContents;
+  // }
 
-  const filterMemo = React.useMemo(() => {
+  // const handleBarcodePrint = (record) => useReactToPrint({
+  //   content: () => <Barcode value={record.name + ", " + record.lot_number + ", " + record.shelf.id} lineColor='#00000' background='#FFFFFF' />
+  // });
+
+  function handleBarcodePrint(record) {
+    setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
+    setPrintModalShow(true)
+  }
+
+  const handlePrint = useReactToPrint({
+    content: () => barcodeRef.current,
+    onAfterPrint: () => handlePrintModalClose()
+  })
+
+  // filter component for table header
+  const filterMemo = useMemo(() => {
     const clearFilterText = () => {
       if (filterText) {
         setResetPaginationToggle(!resetPaginationToggle)
@@ -246,6 +297,28 @@ function ProductsTable({ products, setProducts, shelves }) {
             }
 
           </Form>
+        </Modal.Body>
+
+      </Modal>
+
+      <Modal show={printModalShow} onHide={handlePrintModalClose} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Print Label</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Container>
+            <Row className='barcode-wrap'>
+              <div ref={barcodeRef} className="d-flex justify-content-center py-3">
+                <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' />
+              </div>
+            </Row>
+            <Row>
+              <Col className='d-flex justify-content-center pt-4'>
+                <Button onClick={handlePrint}>Print</Button>
+              </Col>
+            </Row>
+          </Container>
         </Modal.Body>
 
       </Modal>
