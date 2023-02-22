@@ -1,6 +1,8 @@
 import { Container, Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import FilterComponent from './product_filter';
 
 function ProductsTable({ products, setProducts, shelves }) {
 
@@ -13,15 +15,17 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   const [productFormValues, setProductFormValues] = useState(defaultProductFormValues);
-  const [show, setShow] = useState(false);
+  const [productModalShow, setProductModalShow] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
 
   const handleModalClose = () => {
-    setShow(false);
+    setProductModalShow(false);
     setEditing(false);
     setProductFormValues(defaultProductFormValues);
   };
-  const handleModalShow = () => setShow(true);
+  const handleModalShow = () => setProductModalShow(true);
 
   const columns = [
     {
@@ -45,9 +49,6 @@ function ProductsTable({ products, setProducts, shelves }) {
       sortable: true,
     },
     {
-      // cell: () => <Button variant="danger" size="sm" onClick={(row) => handleEditButton(row.id)}>edit location</Button>,
-      // button: true
-      // key: "action",
       text: "Action",
       className: "action",
       width: 100,
@@ -57,6 +58,7 @@ function ProductsTable({ products, setProducts, shelves }) {
         return (
           <Button
             className="btn btn-primary btn-sm"
+            disabled={record.complete}
             onClick={() => handleEditButton(record)}>
             Edit
           </Button>
@@ -65,16 +67,49 @@ function ProductsTable({ products, setProducts, shelves }) {
     },
     {
       name: 'Checked Out?',
-      selector: row => row.complete.toString(),
+      selector: row => row.complete ? "yes" : "no",
       sortable: true,
+    },
+    {
+      text: "Action",
+      className: "action",
+      width: 100,
+      align: "left",
+      sortable: false,
+      cell: (record) => {
+        return (
+          <Button
+            className="btn btn-danger btn-sm"
+            disabled={record.complete}
+            onClick={() => handleCheckOutButton(record)}>
+            Check Out
+          </Button>
+        );
+      },
     }
   ];
 
-
+  // determining shelve dropdown options based on shelves in database
   let shelfOptions = shelves?.map(shelf => <option value={shelf.id} key={shelf.id}>{shelf.name}</option>)
 
   function handleProductInput(eventTarget) {
     setProductFormValues({ ...productFormValues, [eventTarget.name]: eventTarget.value })
+  }
+
+  function handleUpdateProduct(e) {
+    e.preventDefault()
+
+    fetch(`/api/products/${productFormValues.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(productFormValues)
+    })
+      .then(response => response.json())
+      .then(updatedProduct => {
+        let updatedProductsArray = products.map((product) => product.id === updatedProduct.id ? updatedProduct : product)
+        setProducts(updatedProductsArray)
+      })
+    setProductModalShow(false)
   }
 
   function handleProductSubmit(e) {
@@ -88,13 +123,14 @@ function ProductsTable({ products, setProducts, shelves }) {
       .then(response => response.json())
       .then(newProduct => {
         setProducts([...products, newProduct])
-        setShow(false)
+        setProductModalShow(false)
       })
       .catch(error => console.log(error))
+
+    setProductFormValues(defaultProductFormValues)
   }
 
   function handleEditButton(record) {
-
     setEditing(true)
 
     let editFormValues = {}
@@ -107,52 +143,80 @@ function ProductsTable({ products, setProducts, shelves }) {
         }
       }
     }
-
     setProductFormValues(editFormValues)
-    setShow(true)
+    setProductModalShow(true)
   }
 
-  function updateProduct(e) {
-    e.preventDefault()
+  function handleCheckOutButton(record) {
 
-    fetch(`/api/products/${productFormValues.id}`, {
+    fetch(`/api/products/${record.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productFormValues)
+      body: JSON.stringify({ complete: true })
     })
       .then(response => response.json())
-      .then(updatedProduct => {
-        let updatedProductsArray = products.map((product) => product.id === updatedProduct.id ? updatedProduct : product)
+      .then(checkedOutProduct => {
+        let updatedProductsArray = products.map((product) => product.id === checkedOutProduct.id ? checkedOutProduct : product)
         setProducts(updatedProductsArray)
       })
-    setShow(false)
   }
+
+  const filteredProducts = products.filter(item => item.name && item.name.toLowerCase().includes(filterText.toLowerCase()));
+
+  // const FilterComponent = ({ filterText, onFilter, onClear }) => (
+  //   <Row className='flex-nowrap'>
+  //     <Form.Control className="filter-input" id="search" type="text" placeholder="Filter Products By Name" value={filterText} onChange={onFilter} />
+  //     <Button type="button" onClick={onClear} size="sm" variant="light" className='clear-filter-button'>X</Button>
+  //   </Row>
+  // );
+
+  const filterMemo = React.useMemo(() => {
+    const clearFilterText = () => {
+      if (filterText) {
+        setResetPaginationToggle(!resetPaginationToggle)
+        setFilterText('')
+      }
+    };
+
+    return (
+      <FilterComponent onFilter={(e) => setFilterText(e.target.value)} onClear={clearFilterText} filterText={filterText} />
+    );
+  }, [filterText, resetPaginationToggle]);
+
 
   return (
     <Container>
 
       <Row className='mt-4'>
         <Col className='col-9'>
-          <h3>Product Records</h3>
+          <h4>Product Records</h4>
         </Col>
         <Col className='col-3 d-flex justify-content-end'>
-          <Button variant="secondary" onClick={handleModalShow}>Check in a Product</Button>
+          <Button className="check-in-button" variant="secondary" size="sm" onClick={handleModalShow}>Check in a Product</Button>
         </Col>
       </Row>
 
       <Row>
         <Col className='col-12 mt-4'>
-          {products ? <DataTable columns={columns} data={products} pagination /> : <></>}
+          {products ? <DataTable
+            columns={columns}
+            data={filteredProducts}
+            pagination
+            paginationResetDefaultPage={resetPaginationToggle}
+            subHeader
+            subHeaderComponent={filterMemo}
+            persistTableHead />
+            : <></>}
         </Col>
       </Row>
 
-      <Modal show={show} onHide={handleModalClose}>
+      <Modal show={productModalShow} onHide={handleModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Check in a Product</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          <Form className='m-3' onSubmit={(e) => editing ? updateProduct(e) : handleProductSubmit(e)}>
+          <Form className='m-3'>
             <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
               <Form.Control type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} />
@@ -177,8 +241,8 @@ function ProductsTable({ products, setProducts, shelves }) {
             </Form.Group>
 
             {editing ?
-              <Button variant="primary" type="submit">Update</Button> :
-              <Button variant="primary" type="submit">Submit</Button>
+              <Button variant="primary" type="button" onClick={(e) => handleUpdateProduct(e)}>Update</Button> :
+              <Button variant="primary" type="button" onClick={(e) => handleProductSubmit(e)}>Submit</Button>
             }
 
           </Form>

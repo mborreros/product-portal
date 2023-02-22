@@ -36,3 +36,36 @@
     transform: rotate(360deg);
   }
 }
+
+/* my styles */
+
+.clear-filter-button.btn.btn-light.btn-sm {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  width: 32px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: #e5e5e5;
+  border-left-width: 0px;
+}
+
+.filter-input.form-control {
+  height: 32px;
+  width: 275px;
+  border-radius: 3px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #e5e5e5;
+  padding: 0 32px 0 16px;
+}
+
+.check-in-button.btn.btn-secondary.btn-sm {
+  height: 32px;
+  width: 150px;
+}
