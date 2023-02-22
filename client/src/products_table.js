@@ -4,6 +4,8 @@ import { useState, useRef, useMemo } from 'react';
 import FilterComponent from './product_filter';
 import Barcode from 'react-barcode';
 import { useReactToPrint } from 'react-to-print';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
 
 function ProductsTable({ products, setProducts, shelves }) {
 
@@ -42,36 +44,44 @@ function ProductsTable({ products, setProducts, shelves }) {
     {
       name: 'Name',
       selector: row => row.name,
-      sortable: true
+      sortable: true,
+      wrap: true
     },
     {
       name: 'Lot Number',
       selector: row => row.lot_number,
-      sortable: true
+      sortable: true,
+      center: true,
+      width: "125px"
     },
     {
       name: 'Weight (kg)',
       selector: row => row.weight,
-      sortable: true
+      sortable: true,
+      center: true,
+      width: "125px"
     },
     {
       name: 'Shelf Location',
       selector: row => row.shelf.name,
       sortable: true,
+      center: true
     },
     {
       text: "Edit",
       className: "edit",
-      width: 100,
+      width: "135px",
       align: "left",
       sortable: false,
       cell: (record) => {
         return (
           <Button
-            className="btn btn-primary btn-sm"
+            className={record.complete ? "custom-disabled-button" : ""}
+            variant="outline-primary"
+            size="sm"
             disabled={record.complete}
             onClick={() => handleEditButton(record)}>
-            Edit
+            <FontAwesomeIcon icon={faPenToSquare} /> &nbsp; Location
           </Button>
         );
       },
@@ -80,20 +90,25 @@ function ProductsTable({ products, setProducts, shelves }) {
       name: 'Checked Out?',
       selector: row => row.complete ? "yes" : "no",
       sortable: true,
+      width: "135px",
+      center: true
     },
     {
       text: "Check Out",
       className: "check-out",
-      width: 100,
+      width: "150px",
       align: "left",
       sortable: false,
+      classNames: ["check-out-button"],
       cell: (record) => {
         return (
           <Button
-            className="btn btn-danger btn-sm"
+            className={record.complete ? "custom-disabled-button" : ""}
+            variant="outline-danger"
+            size="sm"
             disabled={record.complete}
             onClick={() => handleCheckOutButton(record)}>
-            Check Out
+            <FontAwesomeIcon icon={faArrowRightFromBracket} /> &nbsp; Check Out
           </Button>
         );
       },
@@ -101,16 +116,18 @@ function ProductsTable({ products, setProducts, shelves }) {
     {
       text: "Print",
       className: "print",
-      width: 100,
+      width: "125px",
       align: "left",
       sortable: false,
       cell: (record) => {
         return (
           <Button
-            className="btn btn-success btn-sm"
+            className={record.complete ? "custom-disabled-button" : ""}
+            variant="outline-success"
+            size="sm"
             disabled={record.complete}
             onClick={() => handleBarcodePrint(record)}>
-            Label
+            <FontAwesomeIcon icon={faBarcode} /> &nbsp; Label
           </Button>
         );
       },
@@ -189,27 +206,6 @@ function ProductsTable({ products, setProducts, shelves }) {
       })
   }
 
-  // function handleBarcodeCreation(record) {
-  //   console.log(record)
-  // setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
-  //   // launchPrintModal(barcode)
-  // }
-
-  // const PrintBarcode = (record) => {
-  //   console.log(barcodeRef)
-  //   setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
-  //   //console.log('print');  
-  //   let printContents = <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' />;
-  //   let originalContents = document.body.innerHTML;
-  //   document.body.innerHTML = printContents;
-  //   window.print();
-  //   document.body.innerHTML = originalContents;
-  // }
-
-  // const handleBarcodePrint = (record) => useReactToPrint({
-  //   content: () => <Barcode value={record.name + ", " + record.lot_number + ", " + record.shelf.id} lineColor='#00000' background='#FFFFFF' />
-  // });
-
   function handleBarcodePrint(record) {
     setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
     setPrintModalShow(true)
@@ -243,7 +239,9 @@ function ProductsTable({ products, setProducts, shelves }) {
           <h4>Product Records</h4>
         </Col>
         <Col className='col-3 d-flex justify-content-end'>
-          <Button className="check-in-button" variant="secondary" size="sm" onClick={handleModalShow}>Check in a Product</Button>
+          <Button className="check-in-button" variant="primary" size="sm" onClick={handleModalShow}>
+            <FontAwesomeIcon icon={faArrowRightToBracket} /> &nbsp; Check In a Product
+          </Button>
         </Col>
       </Row>
 
@@ -261,6 +259,7 @@ function ProductsTable({ products, setProducts, shelves }) {
         </Col>
       </Row>
 
+      {/* check in & edit location of product modal */}
       <Modal show={productModalShow} onHide={handleModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Check in a Product</Modal.Title>
@@ -301,6 +300,7 @@ function ProductsTable({ products, setProducts, shelves }) {
 
       </Modal>
 
+      {/* barcode print modal */}
       <Modal show={printModalShow} onHide={handlePrintModalClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Print Label</Modal.Title>
