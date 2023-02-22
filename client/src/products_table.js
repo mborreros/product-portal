@@ -12,7 +12,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   let defaultProductFormValues = {
     name: "",
     lot_number: "",
-    weight: 0,
+    weight: 1,
     complete: false,
     shelf_id: 0
   }
@@ -31,13 +31,16 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   // modal functions
   const handleModalClose = () => {
-    setProductModalShow(false);
     setEditing(false);
     setProductFormValues(defaultProductFormValues);
+    setProductModalShow(false);
   };
   const handleModalShow = () => setProductModalShow(true);
 
-  const handlePrintModalClose = () => setPrintModalShow(false)
+  const handlePrintModalClose = () => {
+    setPrintModalShow(false);
+    setEditing(false);
+  }
 
   // data table columns
   const columns = [
@@ -236,7 +239,7 @@ function ProductsTable({ products, setProducts, shelves }) {
 
       <Row className='mt-4'>
         <Col className='col-9'>
-          <h4>Product Records</h4>
+          <h3>Product Records</h3>
         </Col>
         <Col className='col-3 d-flex justify-content-end'>
           <Button className="check-in-button" variant="primary" size="sm" onClick={handleModalShow}>
@@ -269,17 +272,17 @@ function ProductsTable({ products, setProducts, shelves }) {
           <Form className='m-3'>
             <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} />
+              <Form.Control type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Lot Number</Form.Label>
-              <Form.Control type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} />
+              <Form.Control type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Weight (kg)</Form.Label>
-              <Form.Control type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} />
+              <Form.Control type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} min="1" />
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -290,10 +293,12 @@ function ProductsTable({ products, setProducts, shelves }) {
               </Form.Select>
             </Form.Group>
 
-            {editing ?
-              <Button variant="primary" type="button" onClick={(e) => handleUpdateProduct(e)}>Update</Button> :
-              <Button variant="primary" type="button" onClick={(e) => handleProductSubmit(e)}>Submit</Button>
-            }
+            <div className='d-flex justify-content-end'>
+              {editing ?
+                <Button variant="primary" type="button" onClick={(e) => handleUpdateProduct(e)}>Update</Button> :
+                <Button variant="primary" type="button" onClick={(e) => handleProductSubmit(e)}>Submit</Button>
+              }
+            </div>
 
           </Form>
         </Modal.Body>
