@@ -36,18 +36,9 @@
 
 .custom-disabled-button.btn {
   cursor: not-allowed;
-  pointer-events: auto !important;
+  pointer-events: auto;
   border-color: #D3D3D3 !important;
   background-color: #D3D3D3 !important;
   color: #838383  !important;
-}
-
-.custom-disabled-button.btn:active {
-  background: transparent !important;
-  color: gray !important;
-}
-
-.custom-disabled-button.btn:focus-visible {
-  box-shadow: none;
 }
 

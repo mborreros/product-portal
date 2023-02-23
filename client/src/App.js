@@ -1,5 +1,5 @@
-import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import ProductsTable from './products_table';
 
 import { useState, useEffect } from 'react';
