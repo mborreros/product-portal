@@ -17,8 +17,19 @@ class ProductsController < ApplicationController
   end
 
   def create
-    new_product = Product.create!(product_params)
-    render json: new_product, status: :created
+    if params["_json"].kind_of? Array
+
+      new_products_array = Array.new
+      params["_json"].each do |product|
+        imported_product = Product.create(name: product[:name], lot_number: product[:lot_number], weight: product[:weight], shelf_id: product[:shelf_id], sap_material_number: product[:sap_material_number])
+        new_products_array << imported_product
+      end
+
+      render json: new_products_array, status: :created
+    else
+      new_product = Product.create!(product_params)
+      render json: new_product, status: :created
+    end
   end
 
   def update

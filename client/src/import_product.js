@@ -1,13 +1,30 @@
 import { Container, Row, Col, Button, Modal, Form, Dropdown } from 'react-bootstrap';
-import { useState } from 'react';
-import { read, utils, writeFile } from 'xlsx';
+import { useState, useRef } from 'react';
+import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
+import Barcode from 'react-barcode';
+import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
 
-function ImportProducts({ shelves }) {
+function ImportProducts({ shelves, products, setProducts }) {
+
+  const barcodesRef = useRef();
 
   const [pendingProducts, setPendingProducts] = useState([]);
+  // const [barcodes, setBarcodes] = useState("");
+  const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
+
+  let importedProductsBarcodes
+
+  const handlePrintModalClose = () => {
+    setBulkPrintModalShow(false);
+  }
+
+  const handlePrint = useReactToPrint({
+    content: () => barcodesRef.current,
+    onAfterPrint: () => handlePrintModalClose()
+  })
 
   // import excel file
   const handleImport = ($event) => {
@@ -26,7 +43,7 @@ function ImportProducts({ shelves }) {
           rows.forEach(row => {
             if (row['Material']) {
               let updatedRow = {
-                sap_material_number: row['Material'].toString(), 
+                sap_material_number: row['Material'].toString(),
                 name: row['Material Description'],
                 lot_number: row['Vendor Batch'],
                 weight: row['Unrestricted'],
@@ -47,6 +64,34 @@ function ImportProducts({ shelves }) {
     let updatedRecords = pendingProducts.map((pendingProduct) => pendingProduct.sap_material_number === record.sap_material_number ? record : pendingProduct)
     setPendingProducts(updatedRecords)
   }
+
+  function handleImportProductsSubmit() {
+
+    let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf_id)
+
+    if (invalidPendingProductRecords.length !== 0) {
+      alert(`${invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product" : invalidPendingProductRecords.length + " products"} do not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
+    } else {
+      fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingProducts)
+      })
+        .then(response => response.json())
+        .then(importedProducts => {
+          let allProducts = [...products, importedProducts]
+          setProducts(allProducts.flat())
+
+          importedProductsBarcodes = importedProducts.map((importedProduct) => {
+            return (<Barcode value={importedProduct.name + ", " + importedProduct.lot_number + ", " + importedProduct.shelf.id} lineColor='#00000' background='#FFFFFF' />)
+          })
+
+        })
+      setBulkPrintModalShow(true)
+    }
+  }
+
+  // console.log(products)
 
   const columns = [
     {
@@ -127,6 +172,39 @@ function ImportProducts({ shelves }) {
             : <></>}
         </Col>
       </Row>
+
+      <Row className='m-4'>
+        <Col className='col-12 d-flex justify-content-end'>
+          {pendingProducts.length ?
+            <Button size="sm" variant='primary' onClick={() => handleImportProductsSubmit()}>Submit Imported Products</Button> :
+            <></>
+          }
+        </Col>
+      </Row>
+
+      {/* barcode print modal */}
+      <Modal show={bulkPrintModalShow} onHide={handlePrintModalClose} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Print Label</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Container>
+            <Row className='barcode-wrap'>
+              <div ref={barcodesRef} className="d-flex justify-content-center py-3">
+                {importedProductsBarcodes}
+              </div>
+            </Row>
+            <Row>
+              <Col className='d-flex justify-content-center pt-4'>
+                <Button onClick={handlePrint}>Print</Button>
+              </Col>
+            </Row>
+          </Container>
+        </Modal.Body>
+
+      </Modal>
+
     </Container>
   )
 }

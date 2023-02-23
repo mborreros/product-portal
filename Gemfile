@@ -45,6 +45,9 @@ gem "bootsnap", require: false
 # Serializer
 gem 'active_model_serializers'
 
+# Bulk import for ActiveRecord
+gem 'activerecord-import', '~> 1.4', '>= 1.4.1'
+
 # Use Sass to process CSS
 # gem "sassc-rails"
 

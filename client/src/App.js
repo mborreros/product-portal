@@ -31,7 +31,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ProductsTable products={products} setProducts={setProducts} shelves={shelves} />} />
-        <Route path="/import" element={<ImportProducts shelves={shelves} />} />
+        <Route path="/import" element={<ImportProducts shelves={shelves} products={products} setProducts={setProducts} />} />
       </Routes>
 
     </BrowserRouter>
