@@ -17,10 +17,12 @@
     "react-bootstrap": "^2.7.2",
     "react-data-table-component": "^7.5.3",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",
     "react-to-print": "^2.14.12",
     "styled-components": "^5.3.6",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "PORT=4000 react-scripts start",

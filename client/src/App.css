@@ -30,6 +30,11 @@
   width: 175px;
 }
 
+.import-excel-button.btn.btn-primary.btn-sm {
+  height: 33px;
+  width: 230px;
+}
+
 .barcode-wrap {
   border: 3px dashed #999;
 }

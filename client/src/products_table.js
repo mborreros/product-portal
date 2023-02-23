@@ -5,8 +5,9 @@ import FilterComponent from './product_filter';
 import Barcode from 'react-barcode';
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
+import { useNavigate } from "react-router-dom";
 
 function ProductsTable({ products, setProducts, shelves }) {
 
@@ -20,6 +21,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   const barcodeRef = useRef();
+  const navigate = useNavigate();
 
   const [productFormValues, setProductFormValues] = useState(defaultProductFormValues);
   const [productModalShow, setProductModalShow] = useState(false);
@@ -267,10 +269,15 @@ function ProductsTable({ products, setProducts, shelves }) {
     <Container>
 
       <Row className='mt-4'>
-        <Col className='col-9'>
+        <Col className='col-7'>
           <h3>Product Records</h3>
         </Col>
-        <Col className='col-3 d-flex justify-content-end'>
+        <Col className='col-3 pe-0 d-flex justify-content-end'>
+          <Button className="import-excel-button" variant="primary" size="sm" onClick={() => navigate("/import")}>
+            <FontAwesomeIcon icon={faFileImport} /> &nbsp; Import Products from Excel
+          </Button>
+        </Col>
+        <Col className='col-2 d-flex justify-content-end'>
           <Button className="check-in-button" variant="primary" size="sm" onClick={handleModalShow}>
             <FontAwesomeIcon icon={faArrowRightToBracket} /> &nbsp; Check In a Product
           </Button>
