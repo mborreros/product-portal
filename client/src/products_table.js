@@ -6,10 +6,12 @@ import Barcode from 'react-barcode';
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+import moment from 'moment';
 
 function ProductsTable({ products, setProducts, shelves }) {
 
   let defaultProductFormValues = {
+    sap_material_number: "",
     name: "",
     lot_number: "",
     weight: 1,
@@ -45,30 +47,43 @@ function ProductsTable({ products, setProducts, shelves }) {
   // data table columns
   const columns = [
     {
+      name: 'SAP Material No.',
+      selector: row => row.sap_material_number,
+      sortable: true,
+      wrap: true,
+      width: "135px",
+      compact: true
+    },
+    {
       name: 'Name',
       selector: row => row.name,
       sortable: true,
-      wrap: true
-    },
-    {
-      name: 'Lot Number',
-      selector: row => row.lot_number,
-      sortable: true,
-      center: true,
-      width: "125px"
+      wrap: true,
+      compact: true,
+      width: "175px"
     },
     {
       name: 'Weight (kg)',
       selector: row => row.weight,
       sortable: true,
       center: true,
-      width: "125px"
+      width: "100px",
+      compact: true
     },
     {
-      name: 'Shelf Location',
+      name: 'Lot No.',
+      selector: row => row.lot_number,
+      sortable: true,
+      center: true,
+      width: "125px",
+      compact: true
+    },
+    {
+      name: 'Location',
       selector: row => row.shelf.name,
       sortable: true,
-      center: true
+      center: true,
+      compact: true
     },
     {
       text: "Edit",
@@ -76,6 +91,7 @@ function ProductsTable({ products, setProducts, shelves }) {
       width: "135px",
       align: "left",
       sortable: false,
+      compact: true,
       cell: (record) => {
         return (
           <Button
@@ -90,18 +106,40 @@ function ProductsTable({ products, setProducts, shelves }) {
       },
     },
     {
+      text: "Print",
+      className: "print",
+      width: "80px",
+      align: "left",
+      sortable: false,
+      compact: true,
+      cell: (record) => {
+        return (
+          <Button
+            className={record.complete ? "custom-disabled-button" : ""}
+            variant="outline-success"
+            size="sm"
+            disabled={record.complete}
+            onClick={() => handleBarcodePrint(record)}>
+            <FontAwesomeIcon icon={faBarcode} /> &nbsp; Label
+          </Button>
+        );
+      },
+    },
+    {
       name: 'Checked Out?',
       selector: row => row.complete ? "yes" : "no",
       sortable: true,
       width: "135px",
-      center: true
+      center: true,
+      compact: true
     },
     {
       text: "Check Out",
       className: "check-out",
-      width: "150px",
+      width: "135px",
       align: "left",
       sortable: false,
+      compact: true,
       classNames: ["check-out-button"],
       cell: (record) => {
         return (
@@ -117,24 +155,15 @@ function ProductsTable({ products, setProducts, shelves }) {
       },
     },
     {
-      text: "Print",
-      className: "print",
-      width: "125px",
-      align: "left",
-      sortable: false,
-      cell: (record) => {
-        return (
-          <Button
-            className={record.complete ? "custom-disabled-button" : ""}
-            variant="outline-success"
-            size="sm"
-            disabled={record.complete}
-            onClick={() => handleBarcodePrint(record)}>
-            <FontAwesomeIcon icon={faBarcode} /> &nbsp; Label
-          </Button>
-        );
-      },
-    }
+      name: 'Last Updated',
+      selector: row => row.updated_at,
+      format: row => moment(row.updated_at).format("MM/DD/YYYY HH:mmA"),
+      sortable: true,
+      width: "100px",
+      left: true,
+      compact: true,
+      wrap: true
+    },
   ];
 
   // determining shelve dropdown options based on shelves in database
@@ -270,6 +299,11 @@ function ProductsTable({ products, setProducts, shelves }) {
 
         <Modal.Body>
           <Form className='m-3'>
+            <Form.Group className="mb-3">
+              <Form.Label>SAP Material Number</Form.Label>
+              <Form.Control type="name" name="sap_material_number" placeholder="Enter SAP material number" disabled={editing} value={productFormValues.sap_material_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
+            </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
               <Form.Control type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
