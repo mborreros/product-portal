@@ -47,3 +47,6 @@
   color: #838383  !important;
 }
 
+@media print {
+  div {page-break-after: always;}
+}

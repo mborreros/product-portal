@@ -3,6 +3,8 @@ import { useState, useRef } from 'react';
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
+import _ from "lodash";
+import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
@@ -10,14 +12,15 @@ import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
 function ImportProducts({ shelves, products, setProducts }) {
 
   const barcodesRef = useRef();
+  const navigate = useNavigate();
 
   const [pendingProducts, setPendingProducts] = useState([]);
+  const [importedProducts, setImportedProducts] = useState([]);
   // const [barcodes, setBarcodes] = useState("");
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
 
-  let importedProductsBarcodes
-
   const handlePrintModalClose = () => {
+    setImportedProducts([])
     setBulkPrintModalShow(false);
   }
 
@@ -40,6 +43,11 @@ function ImportProducts({ shelves, products, setProducts }) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
           let newRows = []
           // parse excel data to match database record table
+
+          // let uniqueRows = _.unionBy(rows, 'Material' && 'Vendor Batch');
+
+          // console.log(uniqueRows)
+
           rows.forEach(row => {
             if (row['Material']) {
               let updatedRow = {
@@ -72,26 +80,29 @@ function ImportProducts({ shelves, products, setProducts }) {
     if (invalidPendingProductRecords.length !== 0) {
       alert(`${invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product" : invalidPendingProductRecords.length + " products"} do not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
     } else {
-      fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingProducts)
-      })
-        .then(response => response.json())
-        .then(importedProducts => {
-          let allProducts = [...products, importedProducts]
-          setProducts(allProducts.flat())
 
-          importedProductsBarcodes = importedProducts.map((importedProduct) => {
-            return (<Barcode value={importedProduct.name + ", " + importedProduct.lot_number + ", " + importedProduct.shelf.id} lineColor='#00000' background='#FFFFFF' />)
-          })
-
-        })
+      setImportedProducts(pendingProducts)
       setBulkPrintModalShow(true)
+
+      // fetch("/api/products", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(pendingProducts)
+      // })
+      //   .then(response => response.json())
+      //   .then(newProducts => {
+      //     let allProducts = [...products, newProducts]
+      //     setProducts(allProducts.flat())
+      //   })
     }
   }
 
-  // console.log(products)
+  const importedProductsBarcodes = importedProducts.map((importedProduct) => {
+    return (
+      <div className='p-4 d-flex justify-content-center' key={importedProduct.lot_number}>
+        <Barcode value={importedProduct.name + ", " + importedProduct.lot_number + ", " + importedProduct.shelf_id} lineColor='#00000' background='#FFFFFF' width={1} textAlign="center" />
+      </div>)
+  })
 
   const columns = [
     {
@@ -152,6 +163,28 @@ function ImportProducts({ shelves, products, setProducts }) {
     },
   ];
 
+  function handleBulkPost() {
+    console.log("ready to bulk post")
+
+    let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf_id)
+
+    if (invalidPendingProductRecords.length !== 0) {
+      alert(`${invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product" : invalidPendingProductRecords.length + " products"} do not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
+    } else {
+      fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingProducts)
+      })
+        .then(response => response.json())
+        .then(newProducts => {
+          let allProducts = [...products, newProducts]
+          setProducts(allProducts.flat())
+        })
+        navigate("/")
+    }
+  }
+
   return (
     <Container className='mt-4'>
       <Row>
@@ -174,16 +207,24 @@ function ImportProducts({ shelves, products, setProducts }) {
       </Row>
 
       <Row className='m-4'>
-        <Col className='col-12 d-flex justify-content-end'>
-          {pendingProducts.length ?
-            <Button size="sm" variant='primary' onClick={() => handleImportProductsSubmit()}>Submit Imported Products</Button> :
-            <></>
-          }
-        </Col>
+        {/* <Col className='col-12 d-flex justify-content-end'> */}
+        {pendingProducts.length ?
+          <>
+            <Col className='col-10 d-flex justify-content-end pe-0'>
+              <Button size="sm" variant='primary' onClick={() => handleImportProductsSubmit()}>Print Imported Product Labels</Button>
+            </Col>
+            <Col className='col-2 d-flex justify-content-end ps-0'>
+              <Button size="sm" variant='primary' onClick={() => handleBulkPost()}>Post Imported Records</Button>
+            </Col>
+          </>
+          :
+          <></>
+        }
+        {/* </Col> */}
       </Row>
 
       {/* barcode print modal */}
-      <Modal show={bulkPrintModalShow} onHide={handlePrintModalClose} size="lg">
+      <Modal show={bulkPrintModalShow} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Print Label</Modal.Title>
         </Modal.Header>
@@ -191,7 +232,7 @@ function ImportProducts({ shelves, products, setProducts }) {
         <Modal.Body>
           <Container>
             <Row className='barcode-wrap'>
-              <div ref={barcodesRef} className="d-flex justify-content-center py-3">
+              <div ref={barcodesRef}>
                 {importedProductsBarcodes}
               </div>
             </Row>
