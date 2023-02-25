@@ -1,9 +1,10 @@
-import { Container, Row, Col, Button, Modal, Form, Dropdown } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb } from 'react-bootstrap';
 import { useState, useRef } from 'react';
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
 import _ from "lodash";
+import uuid from 'react-uuid';
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -16,7 +17,7 @@ function ImportProducts({ shelves, products, setProducts }) {
 
   const [pendingProducts, setPendingProducts] = useState([]);
   const [importedProducts, setImportedProducts] = useState([]);
-  // const [barcodes, setBarcodes] = useState("");
+  const [importComplete, setImportComplete] = useState(false);
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
 
   const handlePrintModalClose = () => {
@@ -29,12 +30,19 @@ function ImportProducts({ shelves, products, setProducts }) {
     onAfterPrint: () => handlePrintModalClose()
   })
 
+  function resetAllStateDefaults() {
+    setPendingProducts([]);
+    setImportedProducts([]);
+    setImportComplete(false)
+  }
+
   // import excel file
   const handleImport = ($event) => {
     const files = $event.target.files;
     if (files.length) {
       const file = files[0];
       const reader = new FileReader();
+      resetAllStateDefaults();
       reader.onload = (event) => {
         const wb = read(event.target.result);
         const sheets = wb.SheetNames;
@@ -42,15 +50,11 @@ function ImportProducts({ shelves, products, setProducts }) {
         if (sheets.length) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
           let newRows = []
-          // parse excel data to match database record table
-
-          // let uniqueRows = _.unionBy(rows, 'Material' && 'Vendor Batch');
-
-          // console.log(uniqueRows)
 
           rows.forEach(row => {
-            if (row['Material']) {
+            if (row['Material'] && row['Unrestricted']) {
               let updatedRow = {
+                uuid: uuid(),
                 sap_material_number: row['Material'].toString(),
                 name: row['Material Description'],
                 lot_number: row['Vendor Batch'],
@@ -69,32 +73,13 @@ function ImportProducts({ shelves, products, setProducts }) {
 
   function handleLocationInput(record, shelfId) {
     record.shelf_id = shelfId
-    let updatedRecords = pendingProducts.map((pendingProduct) => pendingProduct.sap_material_number === record.sap_material_number ? record : pendingProduct)
+    let updatedRecords = pendingProducts.map((pendingProduct) => pendingProduct.uuid === record.uuid ? record : pendingProduct)
     setPendingProducts(updatedRecords)
   }
 
   function handleImportProductsSubmit() {
-
-    let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf_id)
-
-    if (invalidPendingProductRecords.length !== 0) {
-      alert(`${invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product" : invalidPendingProductRecords.length + " products"} do not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
-    } else {
-
-      setImportedProducts(pendingProducts)
-      setBulkPrintModalShow(true)
-
-      // fetch("/api/products", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(pendingProducts)
-      // })
-      //   .then(response => response.json())
-      //   .then(newProducts => {
-      //     let allProducts = [...products, newProducts]
-      //     setProducts(allProducts.flat())
-      //   })
-    }
+    setImportedProducts(pendingProducts)
+    setBulkPrintModalShow(true)
   }
 
   const importedProductsBarcodes = importedProducts.map((importedProduct) => {
@@ -154,7 +139,7 @@ function ImportProducts({ shelves, products, setProducts }) {
               <FontAwesomeIcon icon={faThumbTack} /> &nbsp; Set Location
             </Dropdown.Toggle>
 
-            <Dropdown.Menu>
+            <Dropdown.Menu popperConfig={{ strategy: "fixed" }} renderOnMount={true}>
               {shelves.map((shelf) => <Dropdown.Item as="button" onClick={() => handleLocationInput(record, shelf.id)} key={shelf.id} id={record.id}>{shelf.name}</Dropdown.Item>)}
             </Dropdown.Menu>
           </Dropdown>
@@ -164,12 +149,11 @@ function ImportProducts({ shelves, products, setProducts }) {
   ];
 
   function handleBulkPost() {
-    console.log("ready to bulk post")
-
     let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf_id)
 
     if (invalidPendingProductRecords.length !== 0) {
-      alert(`${invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product" : invalidPendingProductRecords.length + " products"} do not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
+      let message = invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product does" : invalidPendingProductRecords.length + " products do"
+      alert(`${message} not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
     } else {
       fetch("/api/products", {
         method: "POST",
@@ -181,7 +165,7 @@ function ImportProducts({ shelves, products, setProducts }) {
           let allProducts = [...products, newProducts]
           setProducts(allProducts.flat())
         })
-        navigate("/")
+      setImportComplete(true)
     }
   }
 
@@ -189,7 +173,11 @@ function ImportProducts({ shelves, products, setProducts }) {
     <Container className='mt-4'>
       <Row>
         <Col className='col-6'>
-          <h3>Import an Excel File</h3>
+          <h3>Import Products from an Excel File</h3>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Products Records</Breadcrumb.Item>
+            <Breadcrumb.Item active>Import Products</Breadcrumb.Item>
+          </Breadcrumb>
         </Col>
         <Col className='col-6'>
           <Form.Control type="file" name="file" className="custom-file-input" id="inputGroupFile" required onChange={handleImport}
@@ -207,24 +195,22 @@ function ImportProducts({ shelves, products, setProducts }) {
       </Row>
 
       <Row className='m-4'>
-        {/* <Col className='col-12 d-flex justify-content-end'> */}
         {pendingProducts.length ?
           <>
             <Col className='col-10 d-flex justify-content-end pe-0'>
-              <Button size="sm" variant='primary' onClick={() => handleImportProductsSubmit()}>Print Imported Product Labels</Button>
+              <Button size="sm" variant='primary' disabled={!importComplete} className={!importComplete ? "custom-disabled-button" : ""} onClick={() => handleImportProductsSubmit()}>Print Imported Product Labels</Button>
             </Col>
             <Col className='col-2 d-flex justify-content-end ps-0'>
-              <Button size="sm" variant='primary' onClick={() => handleBulkPost()}>Post Imported Records</Button>
+              <Button size="sm" variant='primary' disabled={importComplete} className={importComplete ? "custom-disabled-button" : ""} onClick={() => handleBulkPost()}>Publish Imported Records</Button>
             </Col>
-          </>
-          :
+          </> :
           <></>
         }
-        {/* </Col> */}
+
       </Row>
 
       {/* barcode print modal */}
-      <Modal show={bulkPrintModalShow} size="lg">
+      <Modal show={bulkPrintModalShow} onHide={handlePrintModalClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Print Label</Modal.Title>
         </Modal.Header>
