@@ -17,6 +17,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     name: "",
     lot_number: "",
     weight: 1,
+    expiration_date: "",
     complete: false,
     shelf_id: 0
   }
@@ -25,7 +26,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     product_name: "",
     product_lot_number: "",
     description: "",
-    unilever_item_number: 0,
+    unilever_item_number: "",
     unilever_address: {
       recipient: "",
       street_address: "",
@@ -37,6 +38,77 @@ function ProductsTable({ products, setProducts, shelves }) {
     net_weight: 0,
     po_box_number: 0
   }
+
+  let unileverPartNumbers = [
+    {
+      unilever_product_number: "",
+      unilever_product_description: ""
+    },
+    {
+      unilever_product_number: "67668451",
+      unilever_product_description: "GLB Acai Extract GL"
+    },
+    {
+      unilever_product_number: "67673046",
+      unilever_product_description: "GLB Fig Extract GL"
+    },
+    {
+      unilever_product_number: "67664007",
+      unilever_product_description: "GLB Goji Berry Extract GL"
+    },
+    {
+      unilever_product_number: "67670013",
+      unilever_product_description: "GLB Green Tea Extract GL"
+    },
+    {
+      unilever_product_number: "67664017",
+      unilever_product_description: "GLB Guava Extract GL"
+    },
+    {
+      unilever_product_number: "67670063",
+      unilever_product_description: "GLB Hibiscus Extract GL"
+    },
+    {
+      unilever_product_number: "67673695",
+      unilever_product_description: "GLB Irish Moss Extract GL"
+    },
+    {
+      unilever_product_number: "67669875",
+      unilever_product_description: "GLB Marshmallow Extract GL"
+    },
+    {
+      unilever_product_number: "67670067",
+      unilever_product_description: "GLB Nettle Extract GL"
+    },
+    {
+      unilever_product_number: "67670107",
+      unilever_product_description: "GLB Oat Extract GL"
+    },
+    {
+      unilever_product_number: "67669925",
+      unilever_product_description: "GLB Peppermint Extract GL"
+    },
+    {
+      unilever_product_number: "67669943",
+      unilever_product_description: "GLB Plantain Extract GL"
+    },
+    {
+      unilever_product_number: "67675198",
+      unilever_product_description: "GLB Prickly Pear Extract GL"
+    },
+    {
+      unilever_product_number: "67673987",
+      unilever_product_description: "GLB Quinoa Extract GL"
+    },
+    {
+      unilever_product_number: "67664154",
+      unilever_product_description: "GLB Raspberry Extract GL"
+    },
+    {
+      unilever_product_number: "67671242",
+      unilever_product_description: "GLB Rose Extract GL"
+    },
+  ]
 
   const barcodeRef = useRef();
   const navigate = useNavigate();
@@ -69,7 +141,10 @@ function ProductsTable({ products, setProducts, shelves }) {
     setEditing(false);
   }
 
-  const handleUnileverModalClose = () => setUnileverModalShow(false)
+  const handleUnileverModalClose = () => {
+    setUnileverFormValues(defaultUnileverFormValues);
+    setUnileverModalShow(false);
+  }
   const handlePrintUnileverModalClose = () => {
     setUnileverFormValues(defaultUnileverFormValues);
     setPrintUnileverModal(false);
@@ -218,24 +293,16 @@ function ProductsTable({ products, setProducts, shelves }) {
   // determining shelve dropdown options based on shelves in database
   let shelfOptions = shelves?.map(shelf => <option value={shelf.id} key={shelf.id}>{shelf.name}</option>)
 
+  let unileverItemOptions = unileverPartNumbers.map(part => <option value={part.unilever_product_number} key={part.unilever_product_number}>{part.unilever_product_number}</option>)
+
   let usStateOptions = usStateAbbreviations.map(state => <option value={state} key={state}>{state}</option>)
-
-  function formatDate(input) {
-    const datePart = input.match(/\d+/g),
-      year = datePart[0],
-      month = datePart[1],
-      day = datePart[2];
-
-    return month + '/' + day + '/' + year;
-  }
-
-  formatDate('2010/01/18'); // "18/01/10"
 
   function handleProductInput(eventTarget) {
     setProductFormValues({ ...productFormValues, [eventTarget.name]: eventTarget.value })
   }
 
   function handleUnileverInput(eventTarget, nestedObject) {
+
     if (nestedObject === "address") {
       let previousAddressValues = unileverFormValues.unilever_address
       setUnileverFormValues({
@@ -245,6 +312,9 @@ function ProductsTable({ products, setProducts, shelves }) {
           [eventTarget.name]: eventTarget.value
         }
       })
+    } if (nestedObject === "unilever-part") {
+      let thisPart = unileverPartNumbers.filter(part => part.unilever_product_number === eventTarget.value)
+      setUnileverFormValues({ ...unileverFormValues, [eventTarget.name]: eventTarget.value, description: thisPart[0].unilever_product_description })
     } else {
       setUnileverFormValues({ ...unileverFormValues, [eventTarget.name]: eventTarget.value })
     }
@@ -316,18 +386,19 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   function handleBarcodePrint(record) {
-    setBarcode(record.name + ", " + record.lot_number + ", " + record.shelf.id);
+    setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
     setPrintModalShow(true)
   }
 
   function handleUnileverForm(record) {
-    setUnileverFormValues({ ...unileverFormValues, product_name: record.name, product_lot_number: record.lot_number })
+    let weightPounds = record.weight * 2.2046
+    let formattedDate = moment(record.expiration_date).format("MM/DD/YYYY")
+
+    setUnileverFormValues({ ...unileverFormValues, product_name: record.name, product_lot_number: record.lot_number, net_weight: weightPounds, expiration_date: formattedDate })
     setUnileverModalShow(true)
   }
 
   function handleUnileverPrint() {
-    let formattedDate = formatDate(unileverFormValues.expiration_date)
-    setUnileverFormValues({ ...unileverFormValues, expiration_date: formattedDate })
     setUnileverModalShow(false)
     setPrintUnileverModal(true)
   }
@@ -457,32 +528,43 @@ function ProductsTable({ products, setProducts, shelves }) {
             </Row>
 
             <Row>
-              <Form.Group className="mb-3">
-                <Form.Label>Product Description</Form.Label>
-                <Form.Control type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
-              </Form.Group>
-            </Row>
-
-            <Row>
-              <Col className='col-6'>
+              <Col className='col-6 d-flex flex-column justify-content-end'>
                 <Form.Group className="mb-3">
                   <Form.Label>Unilever Item Number</Form.Label>
-                  <Form.Control type="number" step="1" min={0} name="unilever_item_number" placeholder="Enter Unilever item number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
+                  <Form.Select name="unilever_item_number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target, "unilever-part")}>
+                    {unileverItemOptions}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col className='col-3'>
                 <Form.Group className="mb-3">
                   <Form.Label>Net Weight (lbs)</Form.Label>
-                  <Form.Control type="number" step="any" name="net_weight" placeholder="Enter net weight in lbs" value={unileverFormValues.net_weight} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control type="number" step="any" name="net_weight" placeholder="Enter net weight in lbs" disabled value={unileverFormValues.net_weight} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
               <Col className='col-3'>
                 <Form.Group className="mb-3">
                   <Form.Label>Expiration</Form.Label>
-                  <Form.Control type="date" step="any" name="expiration_date" placeholder="Enter exp. date" value={unileverFormValues.expiration_date} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control type="name" name="expiration_date" disabled value={unileverFormValues.expiration_date} />
                 </Form.Group>
               </Col>
             </Row>
+
+            <Row>
+              <Col className='col-7'>
+                <Form.Group className="mb-3">
+                  <Form.Label>Product Description</Form.Label>
+                  <Form.Control type="name" name="description" placeholder="Enter product description" disabled={unileverFormValues.unilever_item_number} value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
+                </Form.Group>
+              </Col>
+              <Col className='col-5'>
+                <Form.Group className="mb-3">
+                  <Form.Label>PO#</Form.Label>
+                  <Form.Control type="number" step="1" name="po_box_number" placeholder="Enter PO Box number" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
+                </Form.Group>
+              </Col>
+            </Row>
+
 
             <hr className='mt-4 mb-4' />
 
@@ -514,13 +596,6 @@ function ProductsTable({ products, setProducts, shelves }) {
                   </Form.Select>
                 </Form.Group>
               </Col>
-            </Row>
-
-            <Row>
-              <Form.Group className="mb-3">
-                <Form.Label>PO Box Number</Form.Label>
-                <Form.Control type="number" step="1" name="po_box_number" placeholder="Enter PO Box number" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
-              </Form.Group>
             </Row>
 
             <div className='d-flex justify-content-end'>

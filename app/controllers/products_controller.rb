@@ -21,7 +21,7 @@ class ProductsController < ApplicationController
 
       new_products_array = Array.new
       params["_json"].each do |product|
-        imported_product = Product.create(name: product[:name], lot_number: product[:lot_number], weight: product[:weight], shelf_id: product[:shelf_id], sap_material_number: product[:sap_material_number])
+        imported_product = Product.create(name: product[:name], lot_number: product[:lot_number], weight: product[:weight], shelf_id: product[:shelf_id], sap_material_number: product[:sap_material_number], expiration_date: product[:expiration_date])
         new_products_array << imported_product
       end
 
@@ -55,7 +55,7 @@ class ProductsController < ApplicationController
   private 
 
   def product_params
-    params.permit(:name, :lot_number, :weight, :complete, :shelf_id, :sap_material_number)
+    params.permit(:name, :lot_number, :weight, :complete, :shelf_id, :sap_material_number, :expiration_date)
   end
 
 end

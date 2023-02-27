@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_23_160357) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_27_213544) do
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.string "lot_number"
@@ -20,6 +20,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_23_160357) do
     t.boolean "complete", default: false
     t.integer "shelf_id"
     t.string "sap_material_number"
+    t.string "expiration_date"
   end
 
   create_table "shelves", force: :cascade do |t|

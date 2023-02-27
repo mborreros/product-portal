@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
+import moment from 'moment';
 
 function ImportProducts({ shelves, products, setProducts }) {
 
@@ -36,6 +37,18 @@ function ImportProducts({ shelves, products, setProducts }) {
     setImportComplete(false)
   }
 
+  // rounding date to nearest day based on excel imported date
+  // function formatRoundDate(date) {
+  //   if (date.getHours() >= 13) {
+  //     let result = new Date(date);
+  //     let roundedDate = date.getDate() + 1
+  //     result = result.setDate(roundedDate);
+  //     return moment(result).format("MM/DD/YYYY")
+  //   } else {
+  //     return moment(date).format("MM/DD/YYYY")
+  //   }
+  // }
+
   // import excel file
   const handleImport = ($event) => {
     const files = $event.target.files;
@@ -52,6 +65,7 @@ function ImportProducts({ shelves, products, setProducts }) {
           let newRows = []
 
           rows.forEach(row => {
+            console.log(row)
             if (row['Material'] && row['Unrestricted']) {
               let updatedRow = {
                 uuid: uuid(),
@@ -59,6 +73,8 @@ function ImportProducts({ shelves, products, setProducts }) {
                 name: row['Material Description'],
                 lot_number: row['Vendor Batch'],
                 weight: row['Unrestricted'],
+                // formatting date into javascript date from excel date
+                expiration_date: new Date(Date.UTC(0, 0, row['SLED/BBD'])),
                 shelf_id: ""
               }
               newRows.push(updatedRow)
@@ -109,7 +125,7 @@ function ImportProducts({ shelves, products, setProducts }) {
       selector: row => row.weight,
       sortable: true,
       center: true,
-      width: "150px",
+      width: "115px",
     },
     {
       name: 'Lot No.',
@@ -119,11 +135,19 @@ function ImportProducts({ shelves, products, setProducts }) {
       width: "150px",
     },
     {
+      name: 'Expiration',
+      selector: row => row.expiration_date,
+      format: row => moment(row.expiration_date).format("MM/DD/YYYY"),
+      sortable: true,
+      center: true,
+      width: "150px",
+    },
+    {
       name: 'Location',
       selector: row => row.shelf_id,
       sortable: true,
       center: true,
-      width: "200px",
+      width: "100px",
     },
     {
       text: "Set Location",
