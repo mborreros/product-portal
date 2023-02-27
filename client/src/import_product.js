@@ -218,7 +218,7 @@ function ImportProducts({ shelves, products, setProducts }) {
         <Modal.Body>
           <Container>
             <Row className='barcode-wrap'>
-              <div ref={barcodesRef}>
+              <div ref={barcodesRef} className="page-break">
                 {importedProductsBarcodes}
               </div>
             </Row>

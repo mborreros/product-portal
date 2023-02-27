@@ -47,6 +47,18 @@
   color: #838383  !important;
 }
 
+.unilever-print-logo {
+  height: 2in;
+}
+
 @media print {
-  div {page-break-after: always;}
+  .page-break {page-break-after: always;}
+  #unilever-barcodes {
+    height: 5in;
+    overflow: hidden;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+  }
 }
