@@ -22,14 +22,20 @@ function ImportProducts({ shelves, products, setProducts }) {
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
   const [splitProductModalShow, setSplitProductModalShow] = useState(false);
   const [productToSplit, setProductToSplit] = useState({});
-  const [splitBy, setSplitBy] = useState(1);
+  const [splitBy, setSplitBy] = useState("");
+  const [validated, setValidated] = useState(false)
 
   const handlePrintModalClose = () => {
     setImportedProducts([])
     setBulkPrintModalShow(false);
   }
 
-  const handleSplitProductModalClose = () => setSplitProductModalShow(false);
+  const handleSplitProductModalClose = () => {
+    setProductToSplit({})
+    setSplitBy("")
+    setValidated(false)
+    setSplitProductModalShow(false)
+  };
 
   const handlePrint = useReactToPrint({
     content: () => barcodesRef.current,
@@ -97,31 +103,40 @@ function ImportProducts({ shelves, products, setProducts }) {
   }
 
   function splitProduct(e) {
-    e.preventDefault()
 
-    // find index of product to remove
-    const indexToRemove = pendingProducts.map(product => product.uuid).indexOf(productToSplit.uuid)
+    const form = e.currentTarget;
 
-    // construct array of objects to insert
-    // replicated record with quantity divides by splitBy
-    const splitProduct = productToSplit
-    splitProduct.weight = (productToSplit.weight / splitBy)
+    if (form.checkValidity() === false) {
+      e.preventDefault();
+      e.stopPropagation();
+      setValidated(true);
+    } else {
+      e.preventDefault()
+      // find index of product to remove
+      const indexToRemove = pendingProducts.map(product => product.uuid).indexOf(productToSplit.uuid)
 
-    let newProductsFromSplit = []
+      // construct array of objects to insert
+      // replicated record with quantity divides by splitBy
+      const splitProduct = productToSplit
+      splitProduct.weight = (productToSplit.weight / splitBy)
 
-    for (let i = 0; i < splitBy; i++) {
-      newProductsFromSplit.push({ ...productToSplit, uuid: uuid(), allow_split: false })
+      let newProductsFromSplit = []
+
+      for (let i = 0; i < splitBy; i++) {
+        newProductsFromSplit.push({ ...productToSplit, uuid: uuid(), allow_split: false })
+      }
+
+      let allProducts = [...pendingProducts]
+      allProducts.splice(indexToRemove, 1, ...newProductsFromSplit)
+
+      setPendingProducts(allProducts)
+
+      // reset states prior to close
+      setProductToSplit({})
+      setSplitBy("")
+      setValidated(false)
+      setSplitProductModalShow(false)
     }
-
-    let allProducts = [...pendingProducts]
-    allProducts.splice(indexToRemove, 1, ...newProductsFromSplit)
-
-    setPendingProducts(allProducts)
-
-    // reset states prior to close
-    setProductToSplit({})
-    setSplitBy(1)
-    setSplitProductModalShow(false)
   }
 
   const importedProductsBarcodes = importedProducts.map((importedProduct) => {
@@ -255,6 +270,7 @@ function ImportProducts({ shelves, products, setProducts }) {
         </Col>
       </Row>
 
+
       <Row>
         <Col className='col-12 mt-4'>
           {pendingProducts ? <DataTable
@@ -309,22 +325,22 @@ function ImportProducts({ shelves, products, setProducts }) {
         </Modal.Header>
 
         <Modal.Body>
-          <Form className='m-3'>
+          <Form className='m-3' noValidate validated={validated} onSubmit={(e) => splitProduct(e)}>
             <Row>
-              <Col className='col-6 d-flex align-items-center'>
-                <Form.Label>Quantity to Split By</Form.Label>
+              <p className='input-modal-text text-muted mb-1'>Input the value you are splitting this product by. </p>
+              <p className='input-modal-text text-muted'>Note: Products can only be split once; ensure you are splitting by the correct number. </p>
+            </Row>
+            <Row>
+              <Col className='col-6 d-flex align-items-center pt-2'>
+                <Form.Label>Quantity to Split Into</Form.Label>
               </Col>
               <Col className='col-6'>
-                <Form.Control type="number" placeholder="Enter value to split product by" value={splitBy} onChange={(e) => setSplitBy(e.target.value)} autoComplete="off" />
+                <Form.Control required type="number" placeholder="Enter a value" min="2" step="1" value={splitBy} onChange={e => setSplitBy(e.target.value)} autoComplete="off" />
               </Col>
             </Row>
-            {/* <Form.Group className="mb-3"> */}
-            {/* <Form.Label>Quantity to Split By</Form.Label> */}
-            {/* <Form.Control type="number" placeholder="Enter value to split product by" value={splitBy} onChange={(e) => setSplitBy(e.target.value)} autoComplete="off" /> */}
-            {/* </Form.Group> */}
 
             <div className='d-flex justify-content-end mt-4'>
-              <Button variant="primary" type="button" onClick={(e) => splitProduct(e)}>Split Product</Button>
+              <Button variant="primary" type="submit">Split Product</Button>
             </div>
 
           </Form>

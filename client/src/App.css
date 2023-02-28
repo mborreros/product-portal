@@ -1,3 +1,11 @@
+a {
+  color: rgb(105, 159, 90)
+}
+
+a:hover {
+  color: rgb(91, 129, 80)
+}
+
 .clear-filter-button.btn.btn-light.btn-sm {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -49,6 +57,10 @@
 
 .unilever-print-logo {
   height: 2in;
+}
+
+.input-modal-text {
+  font-size: 14px;
 }
 
 @media print {

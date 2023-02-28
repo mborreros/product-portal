@@ -128,10 +128,11 @@ function ProductsTable({ products, setProducts, shelves }) {
       unilever_product_number: "67670008",
       unilever_product_description: "GLB Vanilla Extract GL"
     },
-    {
-      unilever_product_number: "67673739",
-      unilever_product_description: "GLB Water Mint Extract GL"
-    },
+    // duplicate unilever part number -> client ok with ignoring this product over the other product
+    // {
+    //   unilever_product_number: "67673739",
+    //   unilever_product_description: "GLB Water Mint Extract GL"
+    // },
     {
       unilever_product_number: "67673726",
       unilever_product_description: "GLB White Willow Bark Extract GL"
@@ -144,11 +145,10 @@ function ProductsTable({ products, setProducts, shelves }) {
       unilever_product_number: "67691705",
       unilever_product_description: "GLB Blue Agave Extract GL"
     },
-    // duplicate unilever part number
-    // {
-    //   unilever_product_number: "67673739",
-    //   unilever_product_description: "GLB Wild Water Mint Extract GL (18kg pail)"
-    // },
+    {
+      unilever_product_number: "67673739",
+      unilever_product_description: "GLB Wild Water Mint Extract GL (18kg pail)"
+    },
     {
       unilever_product_number: "67959718",
       unilever_product_description: "GLB Hydros Witch Hazel PH"
@@ -181,7 +181,7 @@ function ProductsTable({ products, setProducts, shelves }) {
       unilever_product_number: "11130422",
       unilever_product_description: "KahlWax 6421 MB"
     },
-    
+
   ]
 
   const barcodeRef = useRef();
@@ -628,7 +628,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-7'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Description</Form.Label>
-                  <Form.Control type="name" name="description" placeholder="Enter product description" disabled={unileverFormValues.unilever_item_number} value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
+                  <Form.Control type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
                 </Form.Group>
               </Col>
               <Col className='col-5'>
@@ -751,7 +751,7 @@ function ProductsTable({ products, setProducts, shelves }) {
                     </div>
                   </Col>
                   <Col className='col-5 d-flex justify-content-center align-items-center'>
-                    <img className="unilever-print-logo" src={unilever_logo} />
+                    <img className="unilever-print-logo" src={unilever_logo} alt="unilever logo" />
                   </Col>
                 </Row>
               </div>
