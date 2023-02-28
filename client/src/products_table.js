@@ -108,6 +108,80 @@ function ProductsTable({ products, setProducts, shelves }) {
       unilever_product_number: "67671242",
       unilever_product_description: "GLB Rose Extract GL"
     },
+    {
+      unilever_product_number: "67669952",
+      unilever_product_description: "GLB Sage Extract GL"
+    },
+    {
+      unilever_product_number: "67669957",
+      unilever_product_description: "GLB Slippery Elm Bark Extract GL"
+    },
+    {
+      unilever_product_number: "67673802",
+      unilever_product_description: "GLB Spearmint Extract GL"
+    },
+    {
+      unilever_product_number: "67669962",
+      unilever_product_description: "GLB Tamarind Extract GL"
+    },
+    {
+      unilever_product_number: "67670008",
+      unilever_product_description: "GLB Vanilla Extract GL"
+    },
+    {
+      unilever_product_number: "67673739",
+      unilever_product_description: "GLB Water Mint Extract GL"
+    },
+    {
+      unilever_product_number: "67673726",
+      unilever_product_description: "GLB White Willow Bark Extract GL"
+    },
+    {
+      unilever_product_number: "67673791",
+      unilever_product_description: "GLB Yucca Extract GL"
+    },
+    {
+      unilever_product_number: "67691705",
+      unilever_product_description: "GLB Blue Agave Extract GL"
+    },
+    // duplicate unilever part number
+    // {
+    //   unilever_product_number: "67673739",
+    //   unilever_product_description: "GLB Wild Water Mint Extract GL (18kg pail)"
+    // },
+    {
+      unilever_product_number: "67959718",
+      unilever_product_description: "GLB Hydros Witch Hazel PH"
+    },
+    {
+      unilever_product_number: "67673000",
+      unilever_product_description: "GLB Pomegranate Extract"
+    },
+    {
+      unilever_product_number: "67870178",
+      unilever_product_description: "Bamboo Charcoal Powder"
+    },
+    {
+      unilever_product_number: "67673001",
+      unilever_product_description: "Sodium Phytate (GreenGard PA-12)"
+    },
+    {
+      unilever_product_number: "67672737",
+      unilever_product_description: "SD PMT Benzoic Acid 25%+TEC+CapGlycol (GreenGard TBO)"
+    },
+    {
+      unilever_product_number: "67673725",
+      unilever_product_description: "Glyceryl Stearate Citrate"
+    },
+    {
+      unilever_product_number: "67672741",
+      unilever_product_description: "SD PMT GlycerylStearateCitrate+CetearylA (GreenWax G MB)"
+    },
+    {
+      unilever_product_number: "11130422",
+      unilever_product_description: "KahlWax 6421 MB"
+    },
+    
   ]
 
   const barcodeRef = useRef();

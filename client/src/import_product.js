@@ -1,4 +1,4 @@
-import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb, SplitButton } from 'react-bootstrap';
 import { useState, useRef } from 'react';
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
@@ -8,7 +8,7 @@ import uuid from 'react-uuid';
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
+import { faThumbTack, faBoxesStacked } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
 
 function ImportProducts({ shelves, products, setProducts }) {
@@ -20,11 +20,16 @@ function ImportProducts({ shelves, products, setProducts }) {
   const [importedProducts, setImportedProducts] = useState([]);
   const [importComplete, setImportComplete] = useState(false);
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
+  const [splitProductModalShow, setSplitProductModalShow] = useState(false);
+  const [productToSplit, setProductToSplit] = useState({});
+  const [splitBy, setSplitBy] = useState(1);
 
   const handlePrintModalClose = () => {
     setImportedProducts([])
     setBulkPrintModalShow(false);
   }
+
+  const handleSplitProductModalClose = () => setSplitProductModalShow(false);
 
   const handlePrint = useReactToPrint({
     content: () => barcodesRef.current,
@@ -36,18 +41,6 @@ function ImportProducts({ shelves, products, setProducts }) {
     setImportedProducts([]);
     setImportComplete(false)
   }
-
-  // rounding date to nearest day based on excel imported date
-  // function formatRoundDate(date) {
-  //   if (date.getHours() >= 13) {
-  //     let result = new Date(date);
-  //     let roundedDate = date.getDate() + 1
-  //     result = result.setDate(roundedDate);
-  //     return moment(result).format("MM/DD/YYYY")
-  //   } else {
-  //     return moment(date).format("MM/DD/YYYY")
-  //   }
-  // }
 
   // import excel file
   const handleImport = ($event) => {
@@ -65,7 +58,6 @@ function ImportProducts({ shelves, products, setProducts }) {
           let newRows = []
 
           rows.forEach(row => {
-            console.log(row)
             if (row['Material'] && row['Unrestricted']) {
               let updatedRow = {
                 uuid: uuid(),
@@ -73,6 +65,7 @@ function ImportProducts({ shelves, products, setProducts }) {
                 name: row['Material Description'],
                 lot_number: row['Vendor Batch'],
                 weight: row['Unrestricted'],
+                allow_split: true,
                 // formatting date into javascript date from excel date
                 expiration_date: new Date(Date.UTC(0, 0, row['SLED/BBD'])),
                 shelf_id: ""
@@ -98,9 +91,42 @@ function ImportProducts({ shelves, products, setProducts }) {
     setBulkPrintModalShow(true)
   }
 
+  function handleProductSplit(record) {
+    setProductToSplit(record)
+    setSplitProductModalShow(true)
+  }
+
+  function splitProduct(e) {
+    e.preventDefault()
+
+    // find index of product to remove
+    const indexToRemove = pendingProducts.map(product => product.uuid).indexOf(productToSplit.uuid)
+
+    // construct array of objects to insert
+    // replicated record with quantity divides by splitBy
+    const splitProduct = productToSplit
+    splitProduct.weight = (productToSplit.weight / splitBy)
+
+    let newProductsFromSplit = []
+
+    for (let i = 0; i < splitBy; i++) {
+      newProductsFromSplit.push({ ...productToSplit, uuid: uuid(), allow_split: false })
+    }
+
+    let allProducts = [...pendingProducts]
+    allProducts.splice(indexToRemove, 1, ...newProductsFromSplit)
+
+    setPendingProducts(allProducts)
+
+    // reset states prior to close
+    setProductToSplit({})
+    setSplitBy(1)
+    setSplitProductModalShow(false)
+  }
+
   const importedProductsBarcodes = importedProducts.map((importedProduct) => {
     return (
-      <div className='p-4 d-flex justify-content-center' key={importedProduct.lot_number}>
+      <div className='p-4 d-flex justify-content-center' key={importedProduct.uuid}>
         <Barcode value={importedProduct.name + ", " + importedProduct.lot_number + ", " + importedProduct.shelf_id} lineColor='#00000' background='#FFFFFF' width={1} textAlign="center" />
       </div>)
   })
@@ -111,14 +137,14 @@ function ImportProducts({ shelves, products, setProducts }) {
       selector: row => row.sap_material_number,
       sortable: true,
       wrap: true,
-      width: "200px",
+      width: "175px",
     },
     {
       name: 'Name',
       selector: row => row.name,
       sortable: true,
       wrap: true,
-      width: "400px"
+      width: "325px"
     },
     {
       name: 'Weight (kg)',
@@ -126,6 +152,25 @@ function ImportProducts({ shelves, products, setProducts }) {
       sortable: true,
       center: true,
       width: "115px",
+    },
+    {
+      text: "Split Product",
+      className: "split-product",
+      width: "110px",
+      align: "left",
+      sortable: false,
+      cell: (record) => {
+        return (
+          <Button
+            className={record.allow_split ? "" : "custom-disabled-button"}
+            variant="outline-primary"
+            size="sm"
+            disabled={!record.allow_split}
+            onClick={() => handleProductSplit(record)}>
+            <FontAwesomeIcon icon={faBoxesStacked} /> &nbsp; Split
+          </Button>
+        );
+      },
     },
     {
       name: 'Lot No.',
@@ -164,6 +209,7 @@ function ImportProducts({ shelves, products, setProducts }) {
             </Dropdown.Toggle>
 
             <Dropdown.Menu popperConfig={{ strategy: "fixed" }} renderOnMount={true}>
+              <Dropdown.Item as="button" onClick={() => handleLocationInput(record)}>&nbsp;</Dropdown.Item>
               {shelves.map((shelf) => <Dropdown.Item as="button" onClick={() => handleLocationInput(record, shelf.id)} key={shelf.id} id={record.id}>{shelf.name}</Dropdown.Item>)}
             </Dropdown.Menu>
           </Dropdown>
@@ -252,6 +298,36 @@ function ImportProducts({ shelves, products, setProducts }) {
               </Col>
             </Row>
           </Container>
+        </Modal.Body>
+
+      </Modal>
+
+      {/* split products modal */}
+      <Modal show={splitProductModalShow} onHide={handleSplitProductModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Split a Product</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form className='m-3'>
+            <Row>
+              <Col className='col-6 d-flex align-items-center'>
+                <Form.Label>Quantity to Split By</Form.Label>
+              </Col>
+              <Col className='col-6'>
+                <Form.Control type="number" placeholder="Enter value to split product by" value={splitBy} onChange={(e) => setSplitBy(e.target.value)} autoComplete="off" />
+              </Col>
+            </Row>
+            {/* <Form.Group className="mb-3"> */}
+            {/* <Form.Label>Quantity to Split By</Form.Label> */}
+            {/* <Form.Control type="number" placeholder="Enter value to split product by" value={splitBy} onChange={(e) => setSplitBy(e.target.value)} autoComplete="off" /> */}
+            {/* </Form.Group> */}
+
+            <div className='d-flex justify-content-end mt-4'>
+              <Button variant="primary" type="button" onClick={(e) => splitProduct(e)}>Split Product</Button>
+            </div>
+
+          </Form>
         </Modal.Body>
 
       </Modal>
