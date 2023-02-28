@@ -200,7 +200,13 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   const usStateAbbreviations = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
-  const filteredProducts = products.filter(item => item.name && item.name.toLowerCase().includes(filterText.toLowerCase()));
+  const filteredProducts = products.filter(item => {
+    if (filterText) {
+      let barcodeValue = item.sap_material_number + ", " + item.name + ", " + item.lot_number
+      return barcodeValue == filterText
+    }
+    return products
+  })
 
   // modal functions
   const handleProductModalClose = () => {
@@ -372,7 +378,12 @@ function ProductsTable({ products, setProducts, shelves }) {
   let usStateOptions = usStateAbbreviations.map(state => <option value={state} key={state}>{state}</option>)
 
   function handleProductInput(eventTarget) {
-    setProductFormValues({ ...productFormValues, [eventTarget.name]: eventTarget.value })
+    if (eventTarget.name === "expiration_date") {
+      let isoExpDate = moment(eventTarget.value).toISOString()
+      setProductFormValues({ ...productFormValues, [eventTarget.name]: isoExpDate })
+    } else {
+      setProductFormValues({ ...productFormValues, [eventTarget.name]: eventTarget.value })
+    }
   }
 
   function handleUnileverInput(eventTarget, nestedObject) {
@@ -552,10 +563,21 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Form.Control type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Weight (kg)</Form.Label>
-              <Form.Control type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} min="1" />
-            </Form.Group>
+            <Row>
+              <Col className='col-6'>
+                <Form.Group className="mb-3">
+                  <Form.Label>Weight (kg)</Form.Label>
+                  <Form.Control type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} min="1" />
+                </Form.Group>
+              </Col>
+              <Col className='col-6'>
+                <Form.Group className="mb-3">
+                  <Form.Label>Expiration</Form.Label>
+                  <Form.Control type="date" name='expiration_date' disabled={editing} value={moment(productFormValues.expiration_date).format("YYYY-MM-DD")} onChange={(e) => handleProductInput(e.target)} />
+                </Form.Group>
+              </Col>
+            </Row>
+
 
             <Form.Group className="mb-3">
               <Form.Label>Storage Location</Form.Label>
