@@ -184,6 +184,49 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   ]
 
+  let unileverAddresses = [
+    {
+      recipient: "",
+      street_address: "",
+      city: "",
+      state: "",
+      zip_code: "",
+      country: ""
+    },
+    {
+      recipient: "Unilever HPCNA Jefferson City",
+      street_address: "2900 West Truman Blvd",
+      city: "Jefferson City",
+      state: "MO",
+      zip_code: "65109",
+      country: "USA"
+    },
+    {
+      recipient: "Unilever Jonesboro Plant Components",
+      street_address: "2407 Quality Way",
+      city: "Jonesboro",
+      state: "AR",
+      zip_code: "72401",
+      country: "USA"
+    },
+    {
+      recipient: "Unilever HPCUSA SU-Raeford Plant",
+      street_address: "211 Highway East",
+      city: "Raeford",
+      state: "NC",
+      zip_code: "28376",
+      country: "USA"
+    },
+    {
+      recipient: "Unilever Ranick",
+      street_address: "1 Adams Boulevard",
+      city: "Farmingdale",
+      state: "NY",
+      zip_code: "11735",
+      country: "USA"
+    }
+  ]
+
   const barcodeRef = useRef();
   const navigate = useNavigate();
 
@@ -377,6 +420,8 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   let usStateOptions = usStateAbbreviations.map(state => <option value={state} key={state}>{state}</option>)
 
+  let unileverAddressOptions = unileverAddresses.map(address => <option value={address.recipient} key={address.recipient}>{address.recipient}</option>)
+
   function handleProductInput(eventTarget) {
     if (eventTarget.name === "expiration_date") {
       let isoExpDate = moment(eventTarget.value).toISOString()
@@ -387,20 +432,25 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   function handleUnileverInput(eventTarget, nestedObject) {
-
     if (nestedObject === "address") {
-      let previousAddressValues = unileverFormValues.unilever_address
-      setUnileverFormValues({
-        ...unileverFormValues,
-        unilever_address: {
-          ...previousAddressValues,
-          [eventTarget.name]: eventTarget.value
-        }
-      })
+      let thisAddress = unileverAddresses.filter(address => address.recipient === eventTarget.value)[0]
+
+      const addressObject = {
+        recipient: thisAddress.recipient,
+        street_address: thisAddress.street_address,
+        city: thisAddress.city,
+        state: thisAddress.state,
+        country: thisAddress.country
+      }
+
+      const newUnileverValues = { ...unileverFormValues, unilever_address: addressObject }
+
+      setUnileverFormValues({...newUnileverValues})
+
     } if (nestedObject === "unilever-part") {
       let thisPart = unileverPartNumbers.filter(part => part.unilever_product_number === eventTarget.value)
       setUnileverFormValues({ ...unileverFormValues, [eventTarget.name]: eventTarget.value, description: thisPart[0].unilever_product_description })
-    } else {
+    } if (!nestedObject) {
       setUnileverFormValues({ ...unileverFormValues, [eventTarget.name]: eventTarget.value })
     }
   }
@@ -667,8 +717,15 @@ function ProductsTable({ products, setProducts, shelves }) {
             <Row>
               <Form.Group className="mb-3">
                 <Form.Label>Recipient</Form.Label>
-                <Form.Control type="name" name="recipient" placeholder="Enter Unilever recipient" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")} />
+                <Form.Select name="unilever_address" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")}>
+                  {unileverAddressOptions}
+                </Form.Select>
               </Form.Group>
+
+              {/* <Form.Group className="mb-3">
+                <Form.Label>Recipient</Form.Label>
+                <Form.Control type="name" name="recipient" placeholder="Enter Unilever recipient" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")} />
+              </Form.Group> */}
 
               <Form.Group className="mb-3">
                 <Form.Label>Street Address</Form.Label>
@@ -744,18 +801,18 @@ function ProductsTable({ products, setProducts, shelves }) {
                   </Col>
                   <Col className='col-5 d-flex flex-column align-items-center'>
                     <span><strong>Unilever Item number: </strong> {unileverFormValues.unilever_item_number}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.unilever_item_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={15} height={70} />
+                    <Barcode value={printUnileverModal ? unileverFormValues.unilever_item_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={50} />
                   </Col>
                 </Row>
 
                 <Row>
                   <Col className='col-7 d-flex flex-column align-items-center'>
                     <span><strong>LOT </strong> {unileverFormValues.product_lot_number}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.product_lot_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={15} height={50} />
+                    <Barcode value={printUnileverModal ? unileverFormValues.product_lot_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} />
                   </Col>
                   <Col className='col-5 d-flex flex-column align-items-center'>
                     <span>Expiration: {unileverFormValues.expiration_date}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.expiration_date : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={15} height={50} />
+                    <Barcode value={printUnileverModal ? unileverFormValues.expiration_date : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} />
                   </Col>
                 </Row>
 

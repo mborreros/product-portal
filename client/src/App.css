@@ -63,14 +63,18 @@ a:hover {
   font-size: 14px;
 }
 
+@page {
+  size: 6in 4in;
+  margin: 0.5cm;
+}
+
 @media print {
   .page-break {page-break-after: always;}
+  header, footer {
+    display: none !important
+  }
   #unilever-barcodes {
-    height: 5in;
-    overflow: hidden;
-    margin-left: 10%;
-    margin-right: 10%;
-    margin-top: 5%;
-    margin-bottom: 5%;
+    max-width: 100%;
+    font-size: 12px;
   }
 }
