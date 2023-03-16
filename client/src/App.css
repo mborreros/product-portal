@@ -83,4 +83,9 @@ a:hover {
     font-size: 12px;
     margin: 0px;
   }
+  /* #sized_barcodes {
+    margin-left: 1cm;
+    margin-right: 1cm;
+    max-width: 75%;
+  } */
 }

@@ -805,11 +805,11 @@ function ProductsTable({ products, setProducts, shelves }) {
                 <Row>
                   <Col className='col-7 d-flex flex-column align-items-center'>
                     <span><strong>LOT </strong> {unileverFormValues.product_lot_number}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.product_lot_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} />
+                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.product_lot_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
                   </Col>
                   <Col className='col-5 d-flex flex-column align-items-center'>
                     <span>Expiration: {unileverFormValues.expiration_date}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.expiration_date : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} />
+                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.expiration_date : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
                   </Col>
                 </Row>
 
