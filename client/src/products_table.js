@@ -722,11 +722,6 @@ function ProductsTable({ products, setProducts, shelves }) {
                 </Form.Select>
               </Form.Group>
 
-              {/* <Form.Group className="mb-3">
-                <Form.Label>Recipient</Form.Label>
-                <Form.Control type="name" name="recipient" placeholder="Enter Unilever recipient" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")} />
-              </Form.Group> */}
-
               <Form.Group className="mb-3">
                 <Form.Label>Street Address</Form.Label>
                 <Form.Control type="name" name="street_address" placeholder="Enter street number and name" value={unileverFormValues.unilever_address.street_address} onChange={(e) => handleUnileverInput(e.target, "address")} />

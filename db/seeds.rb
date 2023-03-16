@@ -1,7 +1,11 @@
 puts "Creating sample shelves"
-Shelf.create!(name: "Shelf #1")
-Shelf.create!(name: "Shelf #2")
-Shelf.create!(name: "Shelf #3")
+
+(1..49).each { |num| Shelf.create!(name: num.to_s + "A")}
+(1..49).each { |num| Shelf.create!(name: num.to_s + "B")}
+(1..49).each { |num| Shelf.create!(name: num.to_s + "C")}
+(1..49).each { |num| Shelf.create!(name: num.to_s + "D")}
+(1..49).each { |num| Shelf.create!(name: num.to_s + "E")}
+
 puts "Finished creating sample shelves"
 
 puts "Creating sample product records"
