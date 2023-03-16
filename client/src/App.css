@@ -63,6 +63,11 @@ a:hover {
   font-size: 14px;
 }
 
+.dropdown-menu.show {
+  max-height: 250px;
+  overflow-y: scroll;
+}
+
 @page {
   size: 6in 4in;
   margin: 0.5cm;
@@ -76,5 +81,6 @@ a:hover {
   #unilever-barcodes {
     max-width: 100%;
     font-size: 12px;
+    margin: 0px;
   }
 }

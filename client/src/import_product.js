@@ -13,6 +13,8 @@ import moment from 'moment';
 
 function ImportProducts({ shelves, products, setProducts }) {
 
+  let receiving_shelf = shelves.filter(shelf => shelf.id === 1)[0]
+
   const barcodesRef = useRef();
   const navigate = useNavigate();
 
@@ -74,7 +76,7 @@ function ImportProducts({ shelves, products, setProducts }) {
                 allow_split: true,
                 // formatting date into javascript date from excel date
                 expiration_date: new Date(Date.UTC(0, 0, row['SLED/BBD'])),
-                shelf_id: ""
+                shelf: receiving_shelf
               }
               newRows.push(updatedRow)
             }
@@ -86,8 +88,8 @@ function ImportProducts({ shelves, products, setProducts }) {
     }
   }
 
-  function handleLocationInput(record, shelfId) {
-    record.shelf_id = shelfId
+  function handleLocationInput(record, shelf) {
+    record.shelf = shelf
     let updatedRecords = pendingProducts.map((pendingProduct) => pendingProduct.uuid === record.uuid ? record : pendingProduct)
     setPendingProducts(updatedRecords)
   }
@@ -204,7 +206,7 @@ function ImportProducts({ shelves, products, setProducts }) {
     },
     {
       name: 'Location',
-      selector: row => row.shelf_id,
+      selector: row => row.shelf.name,
       sortable: true,
       center: true,
       width: "100px",
@@ -225,7 +227,7 @@ function ImportProducts({ shelves, products, setProducts }) {
 
             <Dropdown.Menu popperConfig={{ strategy: "fixed" }} renderOnMount={true}>
               <Dropdown.Item as="button" onClick={() => handleLocationInput(record)}>&nbsp;</Dropdown.Item>
-              {shelves.map((shelf) => <Dropdown.Item as="button" onClick={() => handleLocationInput(record, shelf.id)} key={shelf.id} id={record.id}>{shelf.name}</Dropdown.Item>)}
+              {shelves.map((shelf) => <Dropdown.Item as="button" onClick={() => handleLocationInput(record, shelf)} key={shelf.id} id={record.id}>{shelf.name}</Dropdown.Item>)}
             </Dropdown.Menu>
           </Dropdown>
         );
@@ -234,7 +236,9 @@ function ImportProducts({ shelves, products, setProducts }) {
   ];
 
   function handleBulkPost() {
-    let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf_id)
+    let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf.id)
+
+    // console.log(pendingProducts)
 
     if (invalidPendingProductRecords.length !== 0) {
       let message = invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product does" : invalidPendingProductRecords.length + " products do"

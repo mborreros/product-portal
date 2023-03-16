@@ -12,6 +12,8 @@ import unilever_logo from "./imgs/unilever-logo.png"
 
 function ProductsTable({ products, setProducts, shelves }) {
 
+  // TODO: fix checkout button
+
   let defaultProductFormValues = {
     sap_material_number: "",
     name: "",

@@ -1,5 +1,7 @@
 puts "Creating warehouse shelves"
 
+Shelf.create!(name: "Receiving")
+
 (1..49).each do |num| 
   Shelf.create!(name: num.to_s + "A")
   Shelf.create!(name: num.to_s + "B")
