@@ -1,10 +1,12 @@
 puts "Creating warehouse shelves"
 
-(1..49).each { |num| Shelf.create!(name: num.to_s + "A")}
-(1..49).each { |num| Shelf.create!(name: num.to_s + "B")}
-(1..49).each { |num| Shelf.create!(name: num.to_s + "C")}
-(1..49).each { |num| Shelf.create!(name: num.to_s + "D")}
-(1..49).each { |num| Shelf.create!(name: num.to_s + "E")}
+(1..49).each do |num| 
+  Shelf.create!(name: num.to_s + "A")
+  Shelf.create!(name: num.to_s + "B")
+  Shelf.create!(name: num.to_s + "C")
+  Shelf.create!(name: num.to_s + "D")
+  Shelf.create!(name: num.to_s + "E")
+end
 
 puts "Finished creating warehouse shelves"
 
