@@ -43,6 +43,11 @@ a:hover {
   width: 230px;
 }
 
+.export-excel-button.btn.btn-primary.btn-sm {
+  height: 33px;
+  width: 160px;
+}
+
 .barcode-wrap {
   border: 3px dashed #999;
 }

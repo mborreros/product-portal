@@ -1,5 +1,5 @@
 import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb } from 'react-bootstrap';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
@@ -11,7 +11,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack, faBoxesStacked } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
 
-function ImportProducts({ shelves, products, setProducts }) {
+function ImportProducts({ shelves, products, setProducts, pageTitle }) {
+
+  useEffect(() => {
+    document.title = pageTitle || "";
+  }, [pageTitle]);
 
   let receiving_shelf = shelves.filter(shelf => shelf.id === 1)[0]
 
@@ -50,6 +54,11 @@ function ImportProducts({ shelves, products, setProducts }) {
     setImportComplete(false)
   }
 
+  function getShelf(shelfId) {
+    let thisShelf = shelves.filter(shelf => shelf.id === shelfId)[0]
+    return thisShelf
+  }
+
   // import excel file
   const handleImport = ($event) => {
     const files = $event.target.files;
@@ -75,8 +84,9 @@ function ImportProducts({ shelves, products, setProducts }) {
                 weight: row['Unrestricted'],
                 allow_split: true,
                 // formatting date into javascript date from excel date
-                expiration_date: new Date(Date.UTC(0, 0, row['SLED/BBD'])),
-                shelf: receiving_shelf
+                expiration_date: row['SLED/BBD'] ? new Date(Date.UTC(0, 0, row['SLED/BBD'])) : row['Formatted Expiration Date'],
+                shelf: row['Shelf ID'] ? getShelf(row['Shelf ID']) : receiving_shelf,
+                complete: row['Checked Out']
               }
               newRows.push(updatedRow)
             }
@@ -238,12 +248,11 @@ function ImportProducts({ shelves, products, setProducts }) {
   function handleBulkPost() {
     let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf.id)
 
-    // console.log(pendingProducts)
-
     if (invalidPendingProductRecords.length !== 0) {
       let message = invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product does" : invalidPendingProductRecords.length + " products do"
       alert(`${message} not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
     } else {
+      console.log(pendingProducts)
       fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

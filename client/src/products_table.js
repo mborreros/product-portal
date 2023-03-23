@@ -1,18 +1,17 @@
 import { Container, Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import FilterComponent from './product_filter';
 import Barcode from 'react-barcode';
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileImport, faDolly } from '@fortawesome/free-solid-svg-icons'
+import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileArrowDown, faDolly } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
 import { useNavigate } from "react-router-dom";
 import unilever_logo from "./imgs/unilever-logo.png"
+import ExportExcel from './export_excel';
 
 function ProductsTable({ products, setProducts, shelves }) {
-
-  // TODO: fix checkout button
 
   let defaultProductFormValues = {
     sap_material_number: "",
@@ -232,6 +231,9 @@ function ProductsTable({ products, setProducts, shelves }) {
   const barcodeRef = useRef();
   const navigate = useNavigate();
 
+  const [checkInValidated, setCheckInValidated] = useState(false);
+  const [unileverFormValidated, setUnileverFormValidated] = useState(false);
+
   const [productFormValues, setProductFormValues] = useState(defaultProductFormValues);
   const [unileverFormValues, setUnileverFormValues] = useState(defaultUnileverFormValues);
   const [productModalShow, setProductModalShow] = useState(false);
@@ -255,9 +257,11 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   // modal functions
   const handleProductModalClose = () => {
-    setEditing(false);
-    setProductFormValues(defaultProductFormValues);
     setProductModalShow(false);
+
+    setEditing(false);
+    setCheckInValidated(false);
+    setProductFormValues(defaultProductFormValues);
   };
   const handleModalShow = () => setProductModalShow(true);
 
@@ -269,9 +273,12 @@ function ProductsTable({ products, setProducts, shelves }) {
   const handleUnileverModalClose = () => {
     setUnileverFormValues(defaultUnileverFormValues);
     setUnileverModalShow(false);
+    setUnileverFormValidated(false);
   }
+
   const handlePrintUnileverModalClose = () => {
     setUnileverFormValues(defaultUnileverFormValues);
+    setUnileverFormValidated(false);
     setPrintUnileverModal(false);
   }
 
@@ -447,7 +454,7 @@ function ProductsTable({ products, setProducts, shelves }) {
 
       const newUnileverValues = { ...unileverFormValues, unilever_address: addressObject }
 
-      setUnileverFormValues({...newUnileverValues})
+      setUnileverFormValues({ ...newUnileverValues })
 
     } if (nestedObject === "unilever-part") {
       let thisPart = unileverPartNumbers.filter(part => part.unilever_product_number === eventTarget.value)
@@ -474,21 +481,30 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   function handleProductSubmit(e) {
-    e.preventDefault()
+    let form = e.target
 
-    fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productFormValues)
-    })
-      .then(response => response.json())
-      .then(newProduct => {
-        setProducts([...products, newProduct])
-        setProductModalShow(false)
+    if (form.checkValidity() === false) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setCheckInValidated(true);
+
+    } else {
+      e.preventDefault()
+      setCheckInValidated(true);
+
+      fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productFormValues)
       })
-      .catch(error => console.log(error))
-
-    setProductFormValues(defaultProductFormValues)
+        .then(response => response.json())
+        .then(newProduct => {
+          setProducts([...products, newProduct])
+          handleProductModalClose()
+        })
+        .catch(error => console.log(error))
+    }
   }
 
   function handleEditButton(record) {
@@ -535,9 +551,24 @@ function ProductsTable({ products, setProducts, shelves }) {
     setUnileverModalShow(true)
   }
 
-  function handleUnileverPrint() {
-    setUnileverModalShow(false)
-    setPrintUnileverModal(true)
+  function handleUnileverPrint(e) {
+
+    let form = e.target;
+
+    if (form.checkValidity() === false) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setUnileverFormValidated(true)
+
+    } else {
+      e.preventDefault()
+
+      setUnileverFormValidated(true)
+
+      setUnileverModalShow(false)
+      setPrintUnileverModal(true)
+    }
   }
 
   const handlePrint = useReactToPrint({
@@ -559,19 +590,23 @@ function ProductsTable({ products, setProducts, shelves }) {
     );
   }, [filterText, resetPaginationToggle]);
 
+
+
   return (
     <Container>
 
       <Row className='mt-4'>
-        <Col className='col-7'>
+        <Col className='col-5'>
           <h3>Product Records</h3>
         </Col>
-        <Col className='col-3 pe-0 d-flex justify-content-end'>
-          <Button className="import-excel-button" variant="primary" size="sm" onClick={() => navigate("/import")}>
-            <FontAwesomeIcon icon={faFileImport} /> &nbsp; Import Products from Excel
+        <Col className='col-7 pe-0 d-flex justify-content-end'>
+
+          <ExportExcel products={products} />
+
+          <Button className="import-excel-button me-4" variant="primary" size="sm" onClick={() => navigate("/import")}>
+            <FontAwesomeIcon icon={faFileArrowDown} /> &nbsp; Import Products from Excel
           </Button>
-        </Col>
-        <Col className='col-2 d-flex justify-content-end'>
+
           <Button className="check-in-button" variant="primary" size="sm" onClick={handleModalShow}>
             <FontAwesomeIcon icon={faArrowRightToBracket} /> &nbsp; Check In a Product
           </Button>
@@ -599,33 +634,33 @@ function ProductsTable({ products, setProducts, shelves }) {
         </Modal.Header>
 
         <Modal.Body>
-          <Form className='m-3'>
+          <Form className='m-3' noValidate validated={checkInValidated} onSubmit={(e) => handleProductSubmit(e)}>
             <Form.Group className="mb-3">
               <Form.Label>SAP Material Number</Form.Label>
-              <Form.Control type="name" name="sap_material_number" placeholder="Enter SAP material number" disabled={editing} value={productFormValues.sap_material_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
+              <Form.Control required type="name" name="sap_material_number" placeholder="Enter SAP material number" disabled={editing} value={productFormValues.sap_material_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
+              <Form.Control required type="name" name="name" placeholder="Enter product name" disabled={editing} value={productFormValues.name} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Lot Number</Form.Label>
-              <Form.Control type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
+              <Form.Control required type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Row>
               <Col className='col-6'>
                 <Form.Group className="mb-3">
                   <Form.Label>Weight (kg)</Form.Label>
-                  <Form.Control type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} min="1" />
+                  <Form.Control required type="number" name="weight" placeholder="Enter weight in kilograms" disabled={editing} value={productFormValues.weight} onChange={(e) => handleProductInput(e.target)} min="1" />
                 </Form.Group>
               </Col>
               <Col className='col-6'>
                 <Form.Group className="mb-3">
                   <Form.Label>Expiration</Form.Label>
-                  <Form.Control type="date" name='expiration_date' disabled={editing} value={moment(productFormValues.expiration_date).format("YYYY-MM-DD")} onChange={(e) => handleProductInput(e.target)} />
+                  <Form.Control required type="date" name='expiration_date' disabled={editing} value={moment(productFormValues.expiration_date).format("YYYY-MM-DD")} onChange={(e) => handleProductInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
@@ -633,8 +668,8 @@ function ProductsTable({ products, setProducts, shelves }) {
 
             <Form.Group className="mb-3">
               <Form.Label>Storage Location</Form.Label>
-              <Form.Select className="mb-3" name="shelf_id" value={productFormValues.shelf_id} onChange={(e) => handleProductInput(e.target)}>
-                <option>Select a Shelf</option>
+              <Form.Select required className="mb-3" name="shelf_id" value={productFormValues.shelf_id} onChange={(e) => handleProductInput(e.target)}>
+                <option value="">Select a Shelf</option>
                 {shelfOptions}
               </Form.Select>
             </Form.Group>
@@ -642,7 +677,7 @@ function ProductsTable({ products, setProducts, shelves }) {
             <div className='d-flex justify-content-end'>
               {editing ?
                 <Button variant="primary" type="button" onClick={(e) => handleUpdateProduct(e)}>Update</Button> :
-                <Button variant="primary" type="button" onClick={(e) => handleProductSubmit(e)}>Submit</Button>
+                <Button variant="primary" type="submit">Submit</Button>
               }
             </div>
 
@@ -658,19 +693,19 @@ function ProductsTable({ products, setProducts, shelves }) {
         </Modal.Header>
 
         <Modal.Body>
-          <Form className='m-3'>
+          <Form className='m-3' noValidate validated={unileverFormValidated} onSubmit={(e) => handleUnileverPrint(e)}>
             <Row>
               <Col className='col-8'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Name</Form.Label>
-                  <Form.Control type="name" name="product_name" placeholder="Enter product name" disabled value={unileverFormValues.product_name} autoComplete="off" />
+                  <Form.Control required type="name" name="product_name" placeholder="Enter product name" disabled value={unileverFormValues.product_name} autoComplete="off" />
                 </Form.Group>
               </Col>
 
               <Col className='col-4'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Lot Number</Form.Label>
-                  <Form.Control type="name" name="product_lot_number" placeholder="Enter product lot number" disabled value={unileverFormValues.product_lot_number} autoComplete="off" />
+                  <Form.Control required type="name" name="product_lot_number" placeholder="Enter product lot number" disabled value={unileverFormValues.product_lot_number} autoComplete="off" />
                 </Form.Group>
               </Col>
             </Row>
@@ -679,7 +714,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-6 d-flex flex-column justify-content-end'>
                 <Form.Group className="mb-3">
                   <Form.Label>Unilever Item Number</Form.Label>
-                  <Form.Select name="unilever_item_number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target, "unilever-part")}>
+                  <Form.Select required name="unilever_item_number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target, "unilever-part")}>
                     {unileverItemOptions}
                   </Form.Select>
                 </Form.Group>
@@ -687,13 +722,13 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-3'>
                 <Form.Group className="mb-3">
                   <Form.Label>Net Weight (lbs)</Form.Label>
-                  <Form.Control type="number" step="any" name="net_weight" placeholder="Enter net weight in lbs" disabled value={unileverFormValues.net_weight} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control required type="number" step="any" name="net_weight" placeholder="Enter net weight in lbs" disabled value={unileverFormValues.net_weight} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
               <Col className='col-3'>
                 <Form.Group className="mb-3">
                   <Form.Label>Expiration</Form.Label>
-                  <Form.Control type="name" name="expiration_date" disabled value={unileverFormValues.expiration_date} />
+                  <Form.Control required type="name" name="expiration_date" disabled value={unileverFormValues.expiration_date} />
                 </Form.Group>
               </Col>
             </Row>
@@ -702,13 +737,13 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-7'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Description</Form.Label>
-                  <Form.Control type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
+                  <Form.Control required type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
                 </Form.Group>
               </Col>
               <Col className='col-5'>
                 <Form.Group className="mb-3">
                   <Form.Label>PO#</Form.Label>
-                  <Form.Control type="number" step="1" name="po_box_number" placeholder="Enter PO Box number" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control required type="number" step="1" name="po_box_number" placeholder="Enter PO Box number" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
@@ -719,29 +754,29 @@ function ProductsTable({ products, setProducts, shelves }) {
             <Row>
               <Form.Group className="mb-3">
                 <Form.Label>Recipient</Form.Label>
-                <Form.Select name="unilever_address" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")}>
+                <Form.Select required name="unilever_address" value={unileverFormValues.unilever_address.recipient} onChange={(e) => handleUnileverInput(e.target, "address")}>
                   {unileverAddressOptions}
                 </Form.Select>
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Street Address</Form.Label>
-                <Form.Control type="name" name="street_address" placeholder="Enter street number and name" value={unileverFormValues.unilever_address.street_address} onChange={(e) => handleUnileverInput(e.target, "address")} />
+                <Form.Control required type="name" name="street_address" placeholder="Enter street number and name" value={unileverFormValues.unilever_address.street_address} onChange={(e) => handleUnileverInput(e.target, "address")} />
               </Form.Group>
             </Row>
             <Row>
               <Col className='col-9'>
                 <Form.Group className="mb-3">
                   <Form.Label>City</Form.Label>
-                  <Form.Control type="name" name="city" placeholder="Enter street number and name" value={unileverFormValues.unilever_address.city} onChange={(e) => handleUnileverInput(e.target, "address")} />
+                  <Form.Control required type="name" name="city" placeholder="Enter street number and name" value={unileverFormValues.unilever_address.city} onChange={(e) => handleUnileverInput(e.target, "address")} />
                 </Form.Group>
               </Col>
 
               <Col className='col-3'>
                 <Form.Group className="mb-3">
                   <Form.Label>State</Form.Label>
-                  <Form.Select name="state" value={unileverFormValues.unilever_address.state} onChange={(e) => handleUnileverInput(e.target, "address")}>
-                    <option>Select</option>
+                  <Form.Select required name="state" value={unileverFormValues.unilever_address.state} onChange={(e) => handleUnileverInput(e.target, "address")}>
+                    <option value="">Select</option>
                     {usStateOptions}
                   </Form.Select>
                 </Form.Group>
@@ -749,7 +784,7 @@ function ProductsTable({ products, setProducts, shelves }) {
             </Row>
 
             <div className='d-flex justify-content-end'>
-              <Button variant="primary" type="button" onClick={(e) => handleUnileverPrint(unileverFormValues)}>Submit</Button>
+              <Button variant="primary" type="submit">Submit</Button>
             </div>
 
           </Form>
@@ -798,18 +833,18 @@ function ProductsTable({ products, setProducts, shelves }) {
                   </Col>
                   <Col className='col-5 d-flex flex-column align-items-center'>
                     <span><strong>Unilever Item number: </strong> {unileverFormValues.unilever_item_number}</span>
-                    <Barcode value={printUnileverModal ? unileverFormValues.unilever_item_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={50} />
+                    <Barcode value={printUnileverModal ? unileverFormValues.unilever_item_number : "unknown"} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={50} />
                   </Col>
                 </Row>
 
                 <Row>
                   <Col className='col-7 d-flex flex-column align-items-center'>
                     <span><strong>LOT </strong> {unileverFormValues.product_lot_number}</span>
-                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.product_lot_number : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
+                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.product_lot_number : "unknown"} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
                   </Col>
                   <Col className='col-5 d-flex flex-column align-items-center'>
                     <span>Expiration: {unileverFormValues.expiration_date}</span>
-                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.expiration_date : ""} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
+                    <Barcode id="sized_barcodes" value={printUnileverModal ? unileverFormValues.expiration_date : "unknown"} lineColor='#00000' background='#FFFFFF' textMargin={0} fontSize={12} height={35} width={1.5} />
                   </Col>
                 </Row>
 
