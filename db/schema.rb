@@ -11,20 +11,23 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.0].define(version: 2023_02_27_213544) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "products", force: :cascade do |t|
-    t.string "name"
-    t.string "lot_number"
+    t.text "name"
+    t.text "lot_number"
     t.integer "weight"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "complete", default: false
     t.integer "shelf_id"
-    t.string "sap_material_number"
-    t.string "expiration_date"
+    t.text "sap_material_number"
+    t.text "expiration_date"
   end
 
   create_table "shelves", force: :cascade do |t|
-    t.string "name"
+    t.text "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
