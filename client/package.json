@@ -9,27 +9,21 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.2.3",
-    "excel-date-to-js": "^1.1.5",
-    "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-barcode": "^1.4.6",
     "react-bootstrap": "^2.7.2",
-    "react-data-export": "^0.6.0",
     "react-data-table-component": "^7.5.3",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",
     "react-to-print": "^2.14.12",
     "react-uuid": "^2.0.0",
-    "sheetjs-style": "^0.15.8",
     "styled-components": "^5.3.6",
     "web-vitals": "^2.1.4",
-    "xlsx": "^0.18.5",
-    "xlsx-populate": "^1.21.0"
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "REACT_APP_BASE_URL=http://localhost:3000 NODE_ENV=development react-scripts start",
@@ -54,8 +48,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "eslint-plugin-react-hooks": "^4.6.0"
   }
 }
