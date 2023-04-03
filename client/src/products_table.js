@@ -467,7 +467,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   function handleUpdateProduct(e) {
     e.preventDefault()
 
-    fetch(`/api/products/${productFormValues.id}`, {
+    fetch(`${process.env.REACT_APP_BASE_URL}`.concat(`/api/products/${productFormValues.id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(productFormValues)
@@ -493,7 +493,7 @@ function ProductsTable({ products, setProducts, shelves }) {
       e.preventDefault()
       setCheckInValidated(true);
 
-      fetch("/api/products", {
+      fetch(`${process.env.REACT_APP_BASE_URL}`.concat('/api/products'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productFormValues)
@@ -526,7 +526,7 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   function handleCheckOutButton(record) {
 
-    fetch(`/api/products/${record.id}`, {
+    fetch(`${process.env.REACT_APP_BASE_URL}`.concat(`/api/products/${record.id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ complete: true })

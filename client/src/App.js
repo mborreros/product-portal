@@ -14,14 +14,14 @@ function App() {
   const [shelves, setShelves] = useState([])
 
   useEffect(() => {
-    fetch("/api/products")
+    fetch(`${process.env.REACT_APP_BASE_URL}`.concat('/api/products'))
       .then(response => response.json())
       .then(fetchedProducts => setProducts(fetchedProducts))
       .catch(error => console.log(error))
   }, [])
 
   useEffect(() => {
-    fetch("/api/shelves")
+    fetch(`${process.env.REACT_APP_BASE_URL}`.concat('/api/shelves'))
       .then(response => response.json())
       .then(fetchedShelves => setShelves(fetchedShelves))
       .catch(error => console.log(error))

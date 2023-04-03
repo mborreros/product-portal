@@ -252,8 +252,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       let message = invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product does" : invalidPendingProductRecords.length + " products do"
       alert(`${message} not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
     } else {
-      console.log(pendingProducts)
-      fetch("/api/products", {
+      fetch(`${process.env.REACT_APP_BASE_URL}`.concat('/api/products'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pendingProducts)
