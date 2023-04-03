@@ -1,0 +1,13 @@
+{
+  "name": "omya-greenline-product-portal",
+  "description": "build scripts for heroku",
+  "engines": {
+    "node": "16.x"
+  },
+  "scripts": {
+    "clean": "rm -rf public",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "deploy": "cp -a client/build/. public/",
+    "heroku-postbuild": "npm run clean && npm run build && npm run deploy"
+  }
+}

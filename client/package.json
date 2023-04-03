@@ -26,8 +26,8 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "REACT_APP_BASE_URL=http://localhost:3000 NODE_ENV=development react-scripts start",
-    "build": "REACT_APP_BASE_URL=https://omya-product-portal.herokuapp.com/ NODE_ENV=production react-scripts build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
