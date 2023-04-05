@@ -3,12 +3,12 @@ import { useState, useRef, useEffect } from 'react';
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
-import _ from "lodash";
+// import _ from "lodash";
 import uuid from 'react-uuid';
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faThumbTack, faBoxesStacked } from '@fortawesome/free-solid-svg-icons'
+import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
 import { colorsArray } from './colors';
 
@@ -21,7 +21,8 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   let receiving_shelf = shelves.filter(shelf => shelf.id === 1)[0]
 
   const barcodesRef = useRef();
-  const navigate = useNavigate();
+  const scrollToRef = useRef();
+  // const navigate = useNavigate();
 
   let colorIndex = 0;
   let colorAssignments = {};
@@ -30,7 +31,8 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   const [importedProducts, setImportedProducts] = useState([]);
   const [importComplete, setImportComplete] = useState(false);
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
-  const [validated, setValidated] = useState(false)
+  const [resetImportPaginationToggle, setResetImportPaginationToggle] = useState(false);
+  // const [validated, setValidated] = useState(false)
   // const [splitProductModalShow, setSplitProductModalShow] = useState(false);
   // const [productToSplit, setProductToSplit] = useState({});
   // const [splitBy, setSplitBy] = useState("");
@@ -63,6 +65,10 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     return thisShelf
   }
 
+  function resettingPaginate() {
+    scrollToRef.current.scrollIntoView()
+  }
+
   // import excel file
   const handleImport = ($event) => {
     const files = $event.target.files;
@@ -77,7 +83,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         if (sheets.length) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
           let newRows = []
-          const regex = /\\*(\d+)\\*/
+          // const regex = /\*.+?(\d+)\*/
 
           rows.forEach(row => {
             let rowColor
@@ -102,7 +108,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
                 shelf: row['Shelf ID'] ? getShelf(row['Shelf ID']) : receiving_shelf,
                 complete: row['Checked Out']
               }
-              let match = row['Material Description'].match(regex)
+              let match = row['Material Description'].match(/\*.+?(\d+)\*/)
               if (match && parseInt(match[1]) > 1) {
                 let updatedSplitRow = splitRow(updatedRow, parseInt(match[1]))
                 newRows.push(...updatedSplitRow)
@@ -197,10 +203,8 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       </div>)
   })
 
-  // console.log(pendingProducts)
-
   const conditionalRowStyles = [{
-    when: row => row.colorId.length,
+    when: row => row.colorId,
     style: row => ({
       borderLeft: "8px solid" + row.colorId,
       borderRight: "8px solid" + row.colorId
@@ -335,11 +339,16 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
 
 
       <Row>
-        <Col className='col-12 mt-4'>
+        <Col className='col-12 mt-4' ref={scrollToRef}>
           {pendingProducts ? <DataTable
             columns={columns}
             data={pendingProducts}
-            conditionalRowStyles={conditionalRowStyles} />
+            conditionalRowStyles={conditionalRowStyles}
+            pagination
+            onChangePage={resettingPaginate}
+            paginationPerPage={50}
+            paginationRowsPerPageOptions={[50, 100, 150, 200]}
+            paginationResetDefaultPage={resetImportPaginationToggle} />
             : <></>}
         </Col>
       </Row>
