@@ -10,6 +10,7 @@ import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack, faBoxesStacked } from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment';
+import { colorsArray } from './colors';
 
 function ImportProducts({ shelves, products, setProducts, pageTitle }) {
 
@@ -22,26 +23,29 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   const barcodesRef = useRef();
   const navigate = useNavigate();
 
+  let colorIndex = 0;
+  let colorAssignments = {};
+
   const [pendingProducts, setPendingProducts] = useState([]);
   const [importedProducts, setImportedProducts] = useState([]);
   const [importComplete, setImportComplete] = useState(false);
   const [bulkPrintModalShow, setBulkPrintModalShow] = useState(false);
-  const [splitProductModalShow, setSplitProductModalShow] = useState(false);
-  const [productToSplit, setProductToSplit] = useState({});
-  const [splitBy, setSplitBy] = useState("");
   const [validated, setValidated] = useState(false)
+  // const [splitProductModalShow, setSplitProductModalShow] = useState(false);
+  // const [productToSplit, setProductToSplit] = useState({});
+  // const [splitBy, setSplitBy] = useState("");
 
   const handlePrintModalClose = () => {
     setImportedProducts([])
     setBulkPrintModalShow(false);
   }
 
-  const handleSplitProductModalClose = () => {
-    setProductToSplit({})
-    setSplitBy("")
-    setValidated(false)
-    setSplitProductModalShow(false)
-  };
+  // const handleSplitProductModalClose = () => {
+  //   // setProductToSplit({})
+  //   // setSplitBy("")
+  //   setValidated(false)
+  //   // setSplitProductModalShow(false)
+  // };
 
   const handlePrint = useReactToPrint({
     content: () => barcodesRef.current,
@@ -73,11 +77,21 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         if (sheets.length) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
           let newRows = []
+          const regex = /\\*(\d+)\\*/
 
           rows.forEach(row => {
+            let rowColor
+            if (colorAssignments[row['Material'].toString()]) {
+              rowColor = colorAssignments[row['Material'].toString()]
+            } else {
+              rowColor = colorsArray[colorIndex]
+              colorIndex++
+            }
+            
             if (row['Material'] && row['Unrestricted']) {
               let updatedRow = {
                 uuid: uuid(),
+                colorId: rowColor,
                 sap_material_number: row['Material'].toString(),
                 name: row['Material Description'],
                 lot_number: row['Vendor Batch'],
@@ -88,7 +102,13 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
                 shelf: row['Shelf ID'] ? getShelf(row['Shelf ID']) : receiving_shelf,
                 complete: row['Checked Out']
               }
-              newRows.push(updatedRow)
+              let match = row['Material Description'].match(regex)
+              if (match && parseInt(match[1]) > 1) {
+                let updatedSplitRow = splitRow(updatedRow, parseInt(match[1]))
+                newRows.push(...updatedSplitRow)
+              } else {
+                newRows.push(updatedRow)
+              }
             }
           })
           setPendingProducts(newRows)
@@ -109,46 +129,65 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     setBulkPrintModalShow(true)
   }
 
-  function handleProductSplit(record) {
-    setProductToSplit(record)
-    setSplitProductModalShow(true)
-  }
+  // function handleProductSplit(record) {
+  //   setProductToSplit(record)
+  //   setSplitProductModalShow(true)
+  // }
 
-  function splitProduct(e) {
+  // function splitProduct(e) {
 
-    const form = e.currentTarget;
+  //   const form = e.currentTarget;
 
-    if (form.checkValidity() === false) {
-      e.preventDefault();
-      e.stopPropagation();
-      setValidated(true);
-    } else {
-      e.preventDefault()
-      // find index of product to remove
-      const indexToRemove = pendingProducts.map(product => product.uuid).indexOf(productToSplit.uuid)
+  //   if (form.checkValidity() === false) {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+  //     setValidated(true);
+  //   } else {
+  //     e.preventDefault()
+  //     // find index of product to remove
+  //     const indexToRemove = pendingProducts.map(product => product.uuid).indexOf(productToSplit.uuid)
 
-      // construct array of objects to insert
-      // replicated record with quantity divides by splitBy
-      const splitProduct = productToSplit
-      splitProduct.weight = (productToSplit.weight / splitBy)
+  //     // construct array of objects to insert
+  //     // replicated record with quantity divides by splitBy
+  //     const splitProduct = productToSplit
+  //     splitProduct.weight = (productToSplit.weight / splitBy)
 
-      let newProductsFromSplit = []
+  //     let newProductsFromSplit = []
 
-      for (let i = 0; i < splitBy; i++) {
-        newProductsFromSplit.push({ ...productToSplit, uuid: uuid(), allow_split: false })
-      }
+  //     for (let i = 0; i < splitBy; i++) {
+  //       newProductsFromSplit.push({ ...productToSplit, uuid: uuid(), allow_split: false })
+  //     }
 
-      let allProducts = [...pendingProducts]
-      allProducts.splice(indexToRemove, 1, ...newProductsFromSplit)
+  //     let allProducts = [...pendingProducts]
+  //     allProducts.splice(indexToRemove, 1, ...newProductsFromSplit)
 
-      setPendingProducts(allProducts)
+  //     setPendingProducts(allProducts)
 
-      // reset states prior to close
-      setProductToSplit({})
-      setSplitBy("")
-      setValidated(false)
-      setSplitProductModalShow(false)
+  //     // reset states prior to close
+  //     setProductToSplit({})
+  //     setSplitBy("")
+  //     setValidated(false)
+  //     setSplitProductModalShow(false)
+  //   }
+  // }
+
+  function splitRow(productToSplit, splitWeight) {
+
+    let splitQty = productToSplit.weight / splitWeight
+
+    let splitRows = []
+
+    for (let i = 0; i < splitQty; i++) {
+      splitRows.push({ ...productToSplit, uuid: uuid(), allow_split: false, weight: splitWeight })
     }
+
+    return splitRows
+
+    // reset states prior to close
+    // setProductToSplit({})
+    // setSplitBy("")
+    // setValidated(false)
+    // setSplitProductModalShow(false)
   }
 
   const importedProductsBarcodes = importedProducts.map((importedProduct) => {
@@ -158,10 +197,22 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       </div>)
   })
 
+  // console.log(pendingProducts)
+
+  const conditionalRowStyles = [{
+    when: row => row.colorId.length,
+    style: row => ({
+      borderLeft: "8px solid" + row.colorId,
+      borderRight: "8px solid" + row.colorId
+    }),
+  }]
+
   const columns = [
     {
       name: 'SAP Material No.',
       selector: row => row.sap_material_number,
+      // when: true,
+      // style: row => ({ backgroundColor: row.colorId }),
       sortable: true,
       wrap: true,
       width: "175px",
@@ -180,25 +231,25 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       center: true,
       width: "115px",
     },
-    {
-      text: "Split Product",
-      className: "split-product",
-      width: "110px",
-      align: "left",
-      sortable: false,
-      cell: (record) => {
-        return (
-          <Button
-            className={record.allow_split ? "" : "custom-disabled-button"}
-            variant="outline-primary"
-            size="sm"
-            disabled={!record.allow_split}
-            onClick={() => handleProductSplit(record)}>
-            <FontAwesomeIcon icon={faBoxesStacked} /> &nbsp; Split
-          </Button>
-        );
-      },
-    },
+    // {
+    //   text: "Split Product",
+    //   className: "split-product",
+    //   width: "110px",
+    //   align: "left",
+    //   sortable: false,
+    //   cell: (record) => {
+    //     return (
+    //       <Button
+    //         className={record.allow_split ? "" : "custom-disabled-button"}
+    //         variant="outline-primary"
+    //         size="sm"
+    //         disabled={!record.allow_split}
+    //         onClick={() => handleProductSplit(record)}>
+    //         <FontAwesomeIcon icon={faBoxesStacked} /> &nbsp; Split
+    //       </Button>
+    //     );
+    //   },
+    // },
     {
       name: 'Lot No.',
       selector: row => row.lot_number,
@@ -219,12 +270,12 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       selector: row => row.shelf.name,
       sortable: true,
       center: true,
-      width: "100px",
+      width: "150px",
     },
     {
       text: "Set Location",
       className: "set-location",
-      width: "150px",
+      width: "175px",
       right: true,
       sortable: false,
       compact: true,
@@ -287,7 +338,8 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         <Col className='col-12 mt-4'>
           {pendingProducts ? <DataTable
             columns={columns}
-            data={pendingProducts} />
+            data={pendingProducts}
+            conditionalRowStyles={conditionalRowStyles} />
             : <></>}
         </Col>
       </Row>
@@ -331,7 +383,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       </Modal>
 
       {/* split products modal */}
-      <Modal show={splitProductModalShow} onHide={handleSplitProductModalClose}>
+      {/* <Modal show={splitProductModalShow} onHide={handleSplitProductModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Split a Product</Modal.Title>
         </Modal.Header>
@@ -358,7 +410,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
           </Form>
         </Modal.Body>
 
-      </Modal>
+      </Modal> */}
 
     </Container>
   )

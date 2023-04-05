@@ -1,15 +1,16 @@
 import { Container, Row, Col, Button, Modal, Form } from 'react-bootstrap';
-import DataTable from 'react-data-table-component';
 import { useState, useRef, useMemo, useEffect } from 'react';
-import FilterComponent from './product_filter';
-import Barcode from 'react-barcode';
+import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
+import moment from 'moment';
+import _ from "lodash";
+import DataTable from 'react-data-table-component';
+import Barcode from 'react-barcode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileArrowDown, faDolly } from '@fortawesome/free-solid-svg-icons'
-import moment from 'moment';
-import { useNavigate } from "react-router-dom";
-import unilever_logo from "./imgs/unilever-logo.png"
 import ExportExcel from './export_excel';
+import FilterComponent from './product_filter';
+import unilever_logo from "./imgs/unilever-logo.png"
 
 function ProductsTable({ products, setProducts, shelves }) {
 
@@ -247,13 +248,19 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   const usStateAbbreviations = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
-  const filteredProducts = products.filter(item => {
-    if (filterText) {
+  let filteredProducts
+
+  if (filterText && filterText.split(", ").length == 3) {
+    filteredProducts = products.filter(item => {
       let barcodeValue = item.sap_material_number + ", " + item.name + ", " + item.lot_number
       return barcodeValue == filterText
-    }
-    return products
-  })
+    })
+  } else if (filterText.length >= 1) {
+    filteredProducts = products.filter(item => item.sap_material_number.includes(filterText) || item.lot_number.includes(filterText) || item.name.includes(filterText))
+  }
+  else if (filterText.length == 0) {
+    filteredProducts = products
+  }
 
   // modal functions
   const handleProductModalClose = () => {
@@ -422,10 +429,12 @@ function ProductsTable({ products, setProducts, shelves }) {
     },
   ];
 
+  let sortedUnileverItems = _.sortBy(unileverPartNumbers, ['unilever_product_number']);
+
   // determining shelve dropdown options based on shelves in database
   let shelfOptions = shelves?.map(shelf => <option value={shelf.id} key={shelf.id}>{shelf.name}</option>)
 
-  let unileverItemOptions = unileverPartNumbers.map(part => <option value={part.unilever_product_number} key={part.unilever_product_number}>{part.unilever_product_number}</option>)
+  let unileverItemOptions = sortedUnileverItems.map(part => <option value={part.unilever_product_number} key={part.unilever_product_number}>{part.unilever_product_number}</option>)
 
   let usStateOptions = usStateAbbreviations.map(state => <option value={state} key={state}>{state}</option>)
 
@@ -619,6 +628,8 @@ function ProductsTable({ products, setProducts, shelves }) {
             columns={columns}
             data={filteredProducts}
             pagination
+            paginationPerPage={100}
+            paginationRowsPerPageOptions={[50, 100, 150, 200, 250]}
             paginationResetDefaultPage={resetPaginationToggle}
             subHeader
             subHeaderComponent={filterMemo}
@@ -705,7 +716,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-4'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Lot Number</Form.Label>
-                  <Form.Control required type="name" name="product_lot_number" placeholder="Enter product lot number" disabled value={unileverFormValues.product_lot_number} autoComplete="off" />
+                  <Form.Control required type="name" name="product_lot_number" placeholder="Enter product lot number" defaultValue={unileverFormValues.product_lot_number} autoComplete="off" onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
@@ -743,7 +754,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-5'>
                 <Form.Group className="mb-3">
                   <Form.Label>PO#</Form.Label>
-                  <Form.Control required type="number" step="1" name="po_box_number" placeholder="Enter PO Box number" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control required type="number" step="1" name="po_box_number" placeholder="Enter PO#" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
