@@ -57,7 +57,7 @@ a:hover {
   pointer-events: auto;
   border-color: #D3D3D3 !important;
   background-color: #D3D3D3 !important;
-  color: #838383  !important;
+  color: #838383 !important;
 }
 
 .unilever-print-logo {
@@ -79,13 +79,24 @@ a:hover {
 }
 
 @media print {
-  .page-break {page-break-after: always;}
-  header, footer {
+  .page-break {
+    page-break-after: always;
+  }
+
+  header,
+  footer {
     display: none !important
   }
+
   #unilever-barcodes {
     max-width: 100%;
     font-size: 12px;
     margin: 0px;
+  }
+
+  #unilever-product-label {
+    max-width: 100%;
+    font-size: 12px;
+    margin: 120px 0px 0px;
   }
 }

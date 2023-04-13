@@ -38,7 +38,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     },
     expiration_date: "",
     net_weight: 0,
-    po_box_number: 0
+    po_box_number: ""
   }
 
   let unileverPartNumbers = [
@@ -229,11 +229,16 @@ function ProductsTable({ products, setProducts, shelves }) {
     }
   ]
 
-  const barcodeRef = useRef();
+  const printRef = useRef();
   const navigate = useNavigate();
 
   const [checkInValidated, setCheckInValidated] = useState(false);
   const [unileverFormValidated, setUnileverFormValidated] = useState(false);
+  const [unileverProductInputsValidity, setUnileverProductInputsValidity] = useState({
+    unilever_item_number: true,
+    po_box_number: true,
+    description: true
+  });
 
   const [productFormValues, setProductFormValues] = useState(defaultProductFormValues);
   const [unileverFormValues, setUnileverFormValues] = useState(defaultUnileverFormValues);
@@ -241,6 +246,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   const [printModalShow, setPrintModalShow] = useState(false);
   const [printUnileverModal, setPrintUnileverModal] = useState(false);
   const [unileverModalShow, setUnileverModalShow] = useState(false);
+  const [printUnileverProductModal, setPrintUnileverProductModal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
@@ -270,6 +276,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     setCheckInValidated(false);
     setProductFormValues(defaultProductFormValues);
   };
+
   const handleModalShow = () => setProductModalShow(true);
 
   const handlePrintModalClose = () => {
@@ -287,6 +294,14 @@ function ProductsTable({ products, setProducts, shelves }) {
     setUnileverFormValues(defaultUnileverFormValues);
     setUnileverFormValidated(false);
     setPrintUnileverModal(false);
+  }
+
+  const handlePrintProductLabelShow = () => setPrintUnileverProductModal(true);
+
+  const handlePrintProductLabelClose = () => {
+    setUnileverFormValues(defaultUnileverFormValues);
+    setUnileverFormValidated(false);
+    setPrintUnileverProductModal(false);
   }
 
   // data table columns
@@ -471,6 +486,41 @@ function ProductsTable({ products, setProducts, shelves }) {
     } if (!nestedObject) {
       setUnileverFormValues({ ...unileverFormValues, [eventTarget.name]: eventTarget.value })
     }
+
+    let inputName = eventTarget.name;
+    switch (inputName) {
+      case "unilever_item_number":
+        setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "unilever_item_number": eventTarget.form[inputName].checkValidity(), "description": eventTarget.form[inputName].checkValidity() })
+        break;
+      case "po_box_number":
+        setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "po_box_number": eventTarget.form[inputName].checkValidity() })
+        break;
+      // case "description":
+      //   setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "description": eventTarget.form[inputName].checkValidity() })
+      //   break;
+
+      default:
+        break;
+    }
+  }
+
+  function validateUnileverProductLabelFields(form) {
+    let ulFields = {
+      unilever_item_number: form.unilever_item_number.checkValidity(),
+      po_box_number: form.po_box_number.checkValidity(),
+      description: form.description.checkValidity()
+    }
+    let valid = true;
+
+    for (const key in ulFields) {
+      if (!ulFields[key]) {
+        valid = false;
+      }
+    }
+
+    setUnileverProductInputsValidity(ulFields);
+
+    return valid;
   }
 
   function handleUpdateProduct(e) {
@@ -580,8 +630,19 @@ function ProductsTable({ products, setProducts, shelves }) {
     }
   }
 
+  function handleUnileverProductPrint(e) {
+    e.preventDefault()
+
+    let areProductInputsValid = validateUnileverProductLabelFields(e.target.form)
+
+    if (areProductInputsValid) {
+      setUnileverModalShow(false)
+      handlePrintProductLabelShow()
+    }
+  }
+
   const handlePrint = useReactToPrint({
-    content: () => barcodeRef.current,
+    content: () => printRef.current,
     onAfterPrint: () => handlePrintModalClose()
   })
 
@@ -725,7 +786,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-6 d-flex flex-column justify-content-end'>
                 <Form.Group className="mb-3">
                   <Form.Label>Unilever Item Number</Form.Label>
-                  <Form.Select required name="unilever_item_number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target, "unilever-part")}>
+                  <Form.Select required className={unileverProductInputsValidity.unilever_item_number ? "" : "is-invalid"} name="unilever_item_number" value={unileverFormValues.unilever_item_number} onChange={(e) => handleUnileverInput(e.target, "unilever-part")}>
                     {unileverItemOptions}
                   </Form.Select>
                 </Form.Group>
@@ -748,16 +809,20 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-7'>
                 <Form.Group className="mb-3">
                   <Form.Label>Product Description</Form.Label>
-                  <Form.Control required type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
+                  <Form.Control required className={unileverProductInputsValidity.description ? "" : "is-invalid"} type="name" name="description" placeholder="Enter product description" value={unileverFormValues.description} onChange={(e) => handleUnileverInput(e.target)} autoComplete="off" />
                 </Form.Group>
               </Col>
               <Col className='col-5'>
                 <Form.Group className="mb-3">
                   <Form.Label>PO#</Form.Label>
-                  <Form.Control required type="number" step="1" name="po_box_number" placeholder="Enter PO#" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control required className={unileverProductInputsValidity.po_box_number ? "" : "is-invalid"} type="number" step="1" min="1" name="po_box_number" placeholder="Enter PO#" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
+
+            <div className='d-flex justify-content-end mt-2'>
+              <Button variant="primary" type="button" onClick={(e) => handleUnileverProductPrint(e)}>Print Product Label</Button>
+            </div>
 
 
             <hr className='mt-4 mb-4' />
@@ -794,8 +859,9 @@ function ProductsTable({ products, setProducts, shelves }) {
               </Col>
             </Row>
 
-            <div className='d-flex justify-content-end'>
-              <Button variant="primary" type="submit">Submit</Button>
+            <div className='d-flex justify-content-end mt-2'>
+              {/* <Button variant="primary" className="me-4" type="button" onClick={(e) => handleUnileverProductPrint(e)}>Print Unilever Product Label</Button> */}
+              <Button variant="primary" type="submit">Print Shipping Label</Button>
             </div>
 
           </Form>
@@ -812,7 +878,7 @@ function ProductsTable({ products, setProducts, shelves }) {
         <Modal.Body>
           <Container>
             <Row className='barcode-wrap'>
-              <div ref={barcodeRef} className="d-flex justify-content-center py-3">
+              <div ref={printRef} className="d-flex justify-content-center py-3">
                 <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' />
               </div>
             </Row>
@@ -835,7 +901,7 @@ function ProductsTable({ products, setProducts, shelves }) {
         <Modal.Body>
           <Container>
             <Row className='barcode-wrap p-3'>
-              <div ref={barcodeRef} id="unilever-barcodes">
+              <div ref={printRef} id="unilever-barcodes">
                 <Row>
                   <Col className='col-7'>
                     <strong>{unileverFormValues.product_name}</strong>
@@ -885,6 +951,31 @@ function ProductsTable({ products, setProducts, shelves }) {
             </Row>
           </Container>
         </Modal.Body>
+      </Modal>
+
+      {/* unilever product label modal */}
+      <Modal show={printUnileverProductModal} onHide={handlePrintProductLabelClose} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Print Label</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Container>
+            <Row className='barcode-wrap'>
+              <div ref={printRef} id="unilever-product-label" className="col-12 d-flex flex-column align-items-center py-3 text-center">
+                <p>UNILEVER ITEM NUMBER {printUnileverProductModal ? unileverFormValues.unilever_item_number : "Unknown"}</p>
+                <p>UNILEVER PURCHASE ORDER {printUnileverProductModal ? unileverFormValues.po_box_number : "Unknown"}</p>
+                <p>UNILEVER DESCRIPTION {printUnileverProductModal ? unileverFormValues.description : "Unknown"}</p>
+              </div>
+            </Row>
+            <Row>
+              <Col className='d-flex justify-content-center pt-4'>
+                <Button onClick={handlePrint}>Print</Button>
+              </Col>
+            </Row>
+          </Container>
+        </Modal.Body>
+
       </Modal>
 
     </Container>
