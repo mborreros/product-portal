@@ -1,5 +1,5 @@
 import { Container, Row, Col, Button, Modal, Form } from 'react-bootstrap';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import moment from 'moment';
@@ -598,7 +598,9 @@ function ProductsTable({ products, setProducts, shelves }) {
   }
 
   function handleBarcodePrint(record) {
-    setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
+    // setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
+    let stringId = "00000000" + record.id.toString()
+    setBarcode(stringId.slice(-8));
     setPrintModalShow(true)
   }
 
@@ -643,6 +645,13 @@ function ProductsTable({ products, setProducts, shelves }) {
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
+    pageStyle: () => "@page { size: 6in 4in; margin: 0.5cm }",
+    onAfterPrint: () => handlePrintModalClose()
+  })
+
+  const handleProductTagPrint = useReactToPrint({
+    content: () => printRef.current,
+    pageStyle: () => "@page { size: 3.5in 1.125in }",
     onAfterPrint: () => handlePrintModalClose()
   })
 
@@ -877,14 +886,18 @@ function ProductsTable({ products, setProducts, shelves }) {
 
         <Modal.Body>
           <Container>
-            <Row className='barcode-wrap'>
-              <div ref={printRef} className="d-flex justify-content-center py-3">
-                <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' />
-              </div>
-            </Row>
+
+            <div className="d-flex justify-content-center py-3">
+              <Row className='barcode-wrap'>
+                  <div ref={printRef} id="product-tags" className='col-12 d-flex flex-column align-items-center pt-2 w-100'>
+                    <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' height={50} />
+                  </div>
+              </Row>
+            </div>
+
             <Row>
               <Col className='d-flex justify-content-center pt-4'>
-                <Button onClick={handlePrint}>Print</Button>
+                <Button onClick={handleProductTagPrint}>Print</Button>
               </Col>
             </Row>
           </Container>
@@ -962,15 +975,15 @@ function ProductsTable({ products, setProducts, shelves }) {
         <Modal.Body>
           <Container>
             <Row className='barcode-wrap'>
-              <div ref={printRef} id="unilever-product-label" className="col-12 d-flex flex-column align-items-center py-3 text-center">
-                <p>UNILEVER ITEM NUMBER {printUnileverProductModal ? unileverFormValues.unilever_item_number : "Unknown"}</p>
-                <p>UNILEVER PURCHASE ORDER {printUnileverProductModal ? unileverFormValues.po_box_number : "Unknown"}</p>
-                <p>UNILEVER DESCRIPTION {printUnileverProductModal ? unileverFormValues.description : "Unknown"}</p>
+              <div ref={printRef} id="unilever-product-label" className="col-12 d-flex flex-column align-items-center w-100 m-0">
+                <p className='mb-1 mt-3'>UNILEVER ITEM NUMBER {printUnileverProductModal ? unileverFormValues.unilever_item_number : "Unknown"}</p>
+                <p className='mb-1'>UNILEVER PURCHASE ORDER {printUnileverProductModal ? unileverFormValues.po_box_number : "Unknown"}</p>
+                <p className='mb-0 text-center'>UNILEVER DESCRIPTION {printUnileverProductModal ? unileverFormValues.description : "Unknown"}</p>
               </div>
             </Row>
             <Row>
               <Col className='d-flex justify-content-center pt-4'>
-                <Button onClick={handlePrint}>Print</Button>
+                <Button onClick={handleProductTagPrint}>Print</Button>
               </Col>
             </Row>
           </Container>

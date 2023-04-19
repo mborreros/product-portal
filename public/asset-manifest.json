@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/static/css/main.c4e0c122.css",
-    "main.js": "/static/js/main.66f4e175.js",
+    "main.css": "/static/css/main.6d3770db.css",
+    "main.js": "/static/js/main.0c9b4b16.js",
     "static/js/787.c4e7f8f9.chunk.js": "/static/js/787.c4e7f8f9.chunk.js",
     "static/media/unilever-logo.png": "/static/media/unilever-logo.0721e20614aaa375f2c6.png",
     "index.html": "/index.html",
-    "main.c4e0c122.css.map": "/static/css/main.c4e0c122.css.map",
-    "main.66f4e175.js.map": "/static/js/main.66f4e175.js.map",
+    "main.6d3770db.css.map": "/static/css/main.6d3770db.css.map",
+    "main.0c9b4b16.js.map": "/static/js/main.0c9b4b16.js.map",
     "787.c4e7f8f9.chunk.js.map": "/static/js/787.c4e7f8f9.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c4e0c122.css",
-    "static/js/main.66f4e175.js"
+    "static/css/main.6d3770db.css",
+    "static/js/main.0c9b4b16.js"
   ]
 }

@@ -73,9 +73,10 @@ a:hover {
   overflow-y: scroll;
 }
 
-@page {
-  size: 6in 4in;
-  margin: 0.5cm;
+.product-tags {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
 }
 
 @media print {
@@ -85,7 +86,13 @@ a:hover {
 
   header,
   footer {
-    display: none !important
+    display: none !important;
+  }
+
+  #product-tags {
+    max-width: 100%;
+    font-size: 12px;
+    margin: 0px;
   }
 
   #unilever-barcodes {
