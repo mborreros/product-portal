@@ -38,7 +38,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   // const [splitBy, setSplitBy] = useState("");
 
   const handlePrintModalClose = () => {
-    setImportedProducts([])
+    // setImportedProducts([])
     setBulkPrintModalShow(false);
   }
 
@@ -49,8 +49,9 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   //   // setSplitProductModalShow(false)
   // };
 
-  const handlePrint = useReactToPrint({
+  const handleBulkTagPrint = useReactToPrint({
     content: () => barcodesRef.current,
+    pageStyle: () => "@page { size: 3.5in 1.125in } @media print { .page-break { page-break-after: always }",
     onAfterPrint: () => handlePrintModalClose()
   })
 
@@ -131,7 +132,6 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   }
 
   function handleImportProductsSubmit() {
-    setImportedProducts(pendingProducts)
     setBulkPrintModalShow(true)
   }
 
@@ -197,9 +197,10 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   }
 
   const importedProductsBarcodes = importedProducts.map((importedProduct) => {
+    let stringId = "00000000" + importedProduct.id.toString()
     return (
-      <div className='p-4 d-flex justify-content-center' key={importedProduct.uuid}>
-        <Barcode value={importedProduct.name + ", " + importedProduct.lot_number + ", " + importedProduct.shelf_id} lineColor='#00000' background='#FFFFFF' width={1} textAlign="center" />
+      <div className='pt-2 d-flex justify-content-center' key={importedProduct.id}>
+        <Barcode value={stringId.slice(-8)} lineColor='#00000' background='#FFFFFF' height={50} textAlign="center" />
       </div>)
   })
 
@@ -316,6 +317,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         .then(newProducts => {
           let allProducts = [...products, newProducts]
           setProducts(allProducts.flat())
+          setImportedProducts(newProducts)
         })
       setImportComplete(true)
     }
@@ -383,7 +385,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
             </Row>
             <Row>
               <Col className='d-flex justify-content-center pt-4'>
-                <Button onClick={handlePrint}>Print</Button>
+                <Button onClick={handleBulkTagPrint}>Print</Button>
               </Col>
             </Row>
           </Container>
