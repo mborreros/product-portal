@@ -572,6 +572,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     let editFormValues = {}
     for (const key in record) {
       if (Object.hasOwnProperty.call(record, key)) {
+
         if (key === 'shelf') {
           editFormValues['shelf_id'] = record.shelf.id
         } else {
@@ -600,9 +601,6 @@ function ProductsTable({ products, setProducts, shelves }) {
   function handleBarcodePrint(record) {
     // setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
     let stringId = "00000000" + record.id.toString()
-
-    console.log(record)
-
     setBarcode({ productName: record.name, barcodeValue: stringId.slice(-8) });
     setPrintModalShow(true)
   }
@@ -731,7 +729,7 @@ function ProductsTable({ products, setProducts, shelves }) {
 
             <Form.Group className="mb-3">
               <Form.Label>Lot Number</Form.Label>
-              <Form.Control required type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
+              <Form.Control required type="lot_number" name="lot_number" placeholder="Enter lot number" disabled={editing} value={productFormValues.lot_number ? productFormValues.lot_number : ""} onChange={(e) => handleProductInput(e.target)} autoComplete="off" />
             </Form.Group>
 
             <Row>
