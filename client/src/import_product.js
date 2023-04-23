@@ -22,7 +22,6 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
 
   const barcodesRef = useRef();
   const scrollToRef = useRef();
-  // const navigate = useNavigate();
 
   let colorIndex = 0;
   let colorAssignments = {};
@@ -84,9 +83,9 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         if (sheets.length) {
           const rows = utils.sheet_to_json(wb.Sheets[sheets[0]]);
           let newRows = []
-          // const regex = /\*.+?(\d+)\*/
 
           rows.forEach(row => {
+
             let rowColor
             if (colorAssignments[row['Material'].toString()]) {
               rowColor = colorAssignments[row['Material'].toString()]
@@ -94,8 +93,9 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
               rowColor = colorsArray[colorIndex]
               colorIndex++
             }
-            
-            if (row['Material'] && row['Unrestricted']) {
+
+            // TODO: confirm is products with no weight should be imported into database
+            if (row['Material'] && row['Unrestricted'] > 0) {
               let updatedRow = {
                 uuid: uuid(),
                 colorId: rowColor,
@@ -109,12 +109,24 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
                 shelf: row['Shelf ID'] ? getShelf(row['Shelf ID']) : receiving_shelf,
                 complete: row['Checked Out']
               }
-              let match = row['Material Description'].match(/\*.+?(\d+)\*/)
-              if (match && parseInt(match[1]) > 1) {
-                let updatedSplitRow = splitRow(updatedRow, parseInt(match[1]))
-                newRows.push(...updatedSplitRow)
-              } else {
-                newRows.push(updatedRow)
+              let hasAsteriskSubstring = row['Material Description'].match(/[*]/) ? true : false;
+              let matchWithoutAsterisk = row['Material Description'].match(/[\d\.]+/);
+              let matchWithinAsterisk = row['Material Description'].match(/\*.+?([\d\.]+)\*/);
+
+              if (hasAsteriskSubstring) { // if product name HAS a substring within asterisks...
+                if (matchWithinAsterisk && parseFloat(matchWithinAsterisk[1]) > 1) {
+                  let updatedSplitRow = splitRow(updatedRow, parseFloat(matchWithinAsterisk[1]))
+                  newRows.push(...updatedSplitRow)
+                } else {
+                  newRows.push(updatedRow)
+                }
+              } else if (!hasAsteriskSubstring) { // if product name DOES NOT a substring within asterisks...
+                if (matchWithoutAsterisk && parseFloat(matchWithoutAsterisk[0]) > 0) {
+                  let updatedSplitRow = splitRow(updatedRow, parseFloat(matchWithoutAsterisk[0]))
+                  newRows.push(...updatedSplitRow)
+                } else {
+                  newRows.push(updatedRow)
+                }
               }
             }
           })
@@ -180,7 +192,6 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   function splitRow(productToSplit, splitWeight) {
 
     let splitQty = productToSplit.weight / splitWeight
-
     let splitRows = []
 
     for (let i = 0; i < splitQty; i++) {

@@ -38,7 +38,7 @@ function ProductsTable({ products, setProducts, shelves }) {
     },
     expiration_date: "",
     net_weight: 0,
-    po_box_number: ""
+    po_number: ""
   }
 
   let unileverPartNumbers = [
@@ -236,7 +236,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   const [unileverFormValidated, setUnileverFormValidated] = useState(false);
   const [unileverProductInputsValidity, setUnileverProductInputsValidity] = useState({
     unilever_item_number: true,
-    po_box_number: true,
+    po_number: true,
     description: true
   });
 
@@ -492,8 +492,8 @@ function ProductsTable({ products, setProducts, shelves }) {
       case "unilever_item_number":
         setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "unilever_item_number": eventTarget.form[inputName].checkValidity(), "description": eventTarget.form[inputName].checkValidity() })
         break;
-      case "po_box_number":
-        setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "po_box_number": eventTarget.form[inputName].checkValidity() })
+      case "po_number":
+        setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "po_number": eventTarget.form[inputName].checkValidity() })
         break;
       // case "description":
       //   setUnileverProductInputsValidity({ ...unileverProductInputsValidity, "description": eventTarget.form[inputName].checkValidity() })
@@ -507,7 +507,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   function validateUnileverProductLabelFields(form) {
     let ulFields = {
       unilever_item_number: form.unilever_item_number.checkValidity(),
-      po_box_number: form.po_box_number.checkValidity(),
+      po_number: form.po_number.checkValidity(),
       description: form.description.checkValidity()
     }
     let valid = true;
@@ -824,7 +824,7 @@ function ProductsTable({ products, setProducts, shelves }) {
               <Col className='col-5'>
                 <Form.Group className="mb-3">
                   <Form.Label>PO#</Form.Label>
-                  <Form.Control required className={unileverProductInputsValidity.po_box_number ? "" : "is-invalid"} type="number" step="1" min="1" name="po_box_number" placeholder="Enter PO#" value={unileverFormValues.po_box_number} onChange={(e) => handleUnileverInput(e.target)} />
+                  <Form.Control required className={unileverProductInputsValidity.po_number ? "" : "is-invalid"} type="number" step="1" min="1" name="po_number" placeholder="Enter PO#" value={unileverFormValues.po_number} onChange={(e) => handleUnileverInput(e.target)} />
                 </Form.Group>
               </Col>
             </Row>
@@ -948,7 +948,7 @@ function ProductsTable({ products, setProducts, shelves }) {
                     </div>
                     <div>
                       <p className='mb-1'>Net Weight: {unileverFormValues.net_weight} lbs</p>
-                      <p>PO# {unileverFormValues.po_box_number}</p>
+                      <p>PO# {unileverFormValues.po_number}</p>
                     </div>
                   </Col>
                   <Col className='col-5 d-flex justify-content-center align-items-center'>
@@ -977,7 +977,7 @@ function ProductsTable({ products, setProducts, shelves }) {
             <Row className='barcode-wrap'>
               <div ref={printRef} id="unilever-product-label" className="col-12 d-flex flex-column align-items-center w-100 m-0">
                 <p className='mb-1 mt-3'>UNILEVER ITEM NUMBER {printUnileverProductModal ? unileverFormValues.unilever_item_number : "Unknown"}</p>
-                <p className='mb-1'>UNILEVER PURCHASE ORDER {printUnileverProductModal ? unileverFormValues.po_box_number : "Unknown"}</p>
+                <p className='mb-1'>UNILEVER PURCHASE ORDER {printUnileverProductModal ? unileverFormValues.po_number : "Unknown"}</p>
                 <p className='mb-0 text-center'>UNILEVER DESCRIPTION {printUnileverProductModal ? unileverFormValues.description : "Unknown"}</p>
               </div>
             </Row>
