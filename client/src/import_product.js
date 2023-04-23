@@ -120,7 +120,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
                 } else {
                   newRows.push(updatedRow)
                 }
-              } else if (!hasAsteriskSubstring) { // if product name DOES NOT a substring within asterisks...
+              } else { // if product name DOES NOT a substring within asterisks...
                 if (matchWithoutAsterisk && parseFloat(matchWithoutAsterisk[0]) > 0) {
                   let updatedSplitRow = splitRow(updatedRow, parseFloat(matchWithoutAsterisk[0]))
                   newRows.push(...updatedSplitRow)
