@@ -211,7 +211,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     let stringId = "00000000" + importedProduct.id.toString()
     return (
       <div className='pt-2 d-flex justify-content-center' key={importedProduct.id}>
-        <Barcode value={stringId.slice(-8)} text={importedProduct.name} lineColor='#00000' background='#FFFFFF' height={50} textAlign="center" fontSize={15} />
+        <Barcode value={stringId.slice(-8)} text={importedProduct.name} lineColor='#00000' background='#FFFFFF' height={50} textAlign="center" fontSize={12} />
       </div>)
   })
 

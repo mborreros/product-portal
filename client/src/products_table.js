@@ -250,7 +250,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   const [editing, setEditing] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState({ record: {}, barcodeValue: "" });
 
   const usStateAbbreviations = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
@@ -600,7 +600,10 @@ function ProductsTable({ products, setProducts, shelves }) {
   function handleBarcodePrint(record) {
     // setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
     let stringId = "00000000" + record.id.toString()
-    setBarcode(stringId.slice(-8));
+
+    console.log(record)
+
+    setBarcode({ productName: record.name, barcodeValue: stringId.slice(-8) });
     setPrintModalShow(true)
   }
 
@@ -889,9 +892,9 @@ function ProductsTable({ products, setProducts, shelves }) {
 
             <div className="d-flex justify-content-center py-3">
               <Row className='barcode-wrap'>
-                  <div ref={printRef} id="product-tags" className='col-12 d-flex flex-column align-items-center pt-2 w-100'>
-                    <Barcode value={barcode} lineColor='#00000' background='#FFFFFF' height={50} />
-                  </div>
+                <div ref={printRef} id="product-tags" className='col-12 d-flex flex-column align-items-center pt-2 w-100'>
+                  <Barcode value={barcode.barcodeValue} text={barcode.productName} lineColor='#00000' background='#FFFFFF' height={50} fontSize={12} />
+                </div>
               </Row>
             </div>
 
