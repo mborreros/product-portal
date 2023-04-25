@@ -601,7 +601,7 @@ function ProductsTable({ products, setProducts, shelves }) {
   function handleBarcodePrint(record) {
     // setBarcode(record.sap_material_number + ", " + record.name + ", " + record.lot_number);
     let stringId = "00000000" + record.id.toString()
-    setBarcode({ productName: record.name, productSAPNumber: record.sap_material_number, productLocation: record.shelf.name, barcodeValue: stringId.slice(-8) }); //TODO: line adjustment
+    setBarcode({ productName: record.name, productSAPNumber: record.sap_material_number, productLocation: record.shelf.name, productLotNo: record.lot_number, barcodeValue: stringId.slice(-8) }); //TODO: line adjustment
     setPrintModalShow(true)
   }
 
@@ -891,7 +891,7 @@ function ProductsTable({ products, setProducts, shelves }) {
             <div className="d-flex justify-content-center py-3">
               <Row className='barcode-wrap'>
                 <div ref={printRef} id="product-tags" className='col-12 d-flex flex-column align-items-center pt-2 w-100'>
-                  <Barcode value={barcode.barcodeValue} text={barcode.productName + ", " + barcode.productSAPNumber + ", " + barcode.productLocation} lineColor='#00000' background='#FFFFFF' height={50} fontSize={8} />
+                  <Barcode value={barcode.barcodeValue} text={barcode.productName + ", " + barcode.productSAPNumber + ", " + barcode.productLotNo + ", " + barcode.productLocation} lineColor='#00000' background='#FFFFFF' height={50} fontSize={6} />
                 </div>
               </Row>
             </div>
