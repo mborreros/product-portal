@@ -210,7 +210,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     let stringId = "00000000" + importedProduct.id.toString()
     return (
       <div className='pt-2 d-flex justify-content-center' key={importedProduct.id}>
-        <Barcode value={stringId.slice(-8)} text={importedProduct.name + ", " + importedProduct.sap_material_number + ", " + importedProduct.shelf.name} lineColor='#00000' background='#FFFFFF' height={50} textAlign="center" fontSize={8} />
+        <Barcode value={stringId.slice(-8)} text={importedProduct.name + ", " + importedProduct.sap_material_number + ", " + importedProduct.lot_number + ", " + importedProduct.shelf.name} lineColor='#00000' background='#FFFFFF' height={50} textAlign="center" fontSize={5} />
       </div>)
   })
 
@@ -388,15 +388,15 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
 
         <Modal.Body>
           <Container>
+            <Row>
+              <Col className='d-flex justify-content-end pb-4'>
+                <Button onClick={handleBulkTagPrint}>Print</Button>
+              </Col>
+            </Row>
             <Row className='barcode-wrap'>
               <div ref={barcodesRef} className="page-break">
                 {importedProductsBarcodes}
               </div>
-            </Row>
-            <Row>
-              <Col className='d-flex justify-content-center pt-4'>
-                <Button onClick={handleBulkTagPrint}>Print</Button>
-              </Col>
             </Row>
           </Container>
         </Modal.Body>
