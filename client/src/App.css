@@ -35,17 +35,37 @@ a:hover {
 
 .check-in-button.btn.btn-primary.btn-sm {
   height: 33px;
-  width: 175px;
+  width: 170px;
 }
 
 .import-excel-button.btn.btn-primary.btn-sm {
   height: 33px;
-  width: 230px;
+  width: 225px;
 }
 
 .export-excel-button.btn.btn-primary.btn-sm {
   height: 33px;
-  width: 160px;
+  width: 150px;
+}
+
+.audit-button.btn.btn-primary.btn-sm {
+  height: 33px;
+  width: 122px;
+}
+
+.shelves-button.btn.btn-primary.btn-sm {
+  height: 33px;
+  width: 134px;
+}
+
+#audit-products-submit-button.btn {
+  height: 33px;
+  width: 275px;
+}
+
+#clear-scanned-shelf-button.btn {
+  height: 33px;
+  width: 112px;
 }
 
 .barcode-wrap {
@@ -77,6 +97,11 @@ a:hover {
   width: 100%;
   height: 100%;
   margin: 0px;
+}
+
+#shelf-details:disabled,
+#product-details:disabled {
+  background-color: #f4f4f47d;
 }
 
 @media print {

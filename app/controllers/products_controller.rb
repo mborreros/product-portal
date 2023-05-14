@@ -33,12 +33,24 @@ class ProductsController < ApplicationController
   end
 
   def update
-    product = Product.find_by(id: params[:id])
-    if product
-      product.update!(product_params)
-      render json: product, status: :ok
+    if params["_json"].kind_of? Array
+      audited_products_array = Array.new
+      params["_json"].each do |product|
+        this_product = Product.find_by(id: product[:id])
+        if this_product
+          this_product.update!(shelf_id: product[:shelf_id])
+          audited_products_array << this_product
+        end 
+      end
+      render json: audited_products_array, status: :ok
     else
-      render json: {error: "product record could not be located, update failed"}
+      product = Product.find_by(id: params[:id])
+      if product
+        product.update!(product_params)
+        render json: product, status: :ok
+      else
+        render json: {error: "product record could not be located, update failed"}
+      end
     end
   end
 

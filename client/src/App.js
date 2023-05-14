@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import ProductsTable from './products_table';
 import ImportProducts from './import_product';
+import AuditShelf from './audit_shelf';
+import ViewShelves from './view_shelves';
 
 import { useState, useEffect } from 'react';
 
@@ -32,6 +34,8 @@ function App() {
       <Routes>
         <Route path="/" element={<ProductsTable products={products} setProducts={setProducts} shelves={shelves} />} />
         <Route path="/import" element={<ImportProducts shelves={shelves} products={products} setProducts={setProducts} pageTitle={"Import Products | Material Manager"}/>} />
+        <Route path="/audit" element={<AuditShelf shelves={shelves} products={products} setProducts={setProducts} pageTitle={"Audit Shelf | Material Manager"} />} />
+        <Route path="/shelves" element={<ViewShelves shelves={shelves} pageTitle={"View Shelves | Material Manager"} />} />
       </Routes>
 
     </BrowserRouter>

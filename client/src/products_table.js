@@ -7,7 +7,7 @@ import _ from "lodash";
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileArrowDown, faDolly } from '@fortawesome/free-solid-svg-icons'
+import { faPenToSquare, faBarcode, faArrowRightFromBracket, faArrowRightToBracket, faFileArrowDown, faDolly, faClipboardCheck, faToiletPortable, faDeleteLeft } from '@fortawesome/free-solid-svg-icons'
 import ExportExcel from './export_excel';
 import FilterComponent from './product_filter';
 import unilever_logo from "./imgs/unilever-logo.png"
@@ -670,21 +670,27 @@ function ProductsTable({ products, setProducts, shelves }) {
     );
   }, [filterText, resetPaginationToggle]);
 
-
-
   return (
     <Container>
 
       <Row className='mt-4'>
-        <Col className='col-5'>
+        <Col className='col-3'>
           <h3>Product Records</h3>
         </Col>
-        <Col className='col-7 pe-0 d-flex justify-content-end'>
+        <Col className='col-9 pe-0 d-flex justify-content-end'>
 
           <ExportExcel products={products} />
 
           <Button className="import-excel-button me-4" variant="primary" size="sm" onClick={() => navigate("/import")}>
             <FontAwesomeIcon icon={faFileArrowDown} /> &nbsp; Import Products from Excel
+          </Button>
+
+          <Button className="audit-button me-4" variant="primary" size="sm" onClick={() => navigate("/audit")}>
+            <FontAwesomeIcon icon={faClipboardCheck} /> &nbsp; Audit Shelf
+          </Button>
+
+          <Button className="shelves-button me-4" variant="primary" size="sm" onClick={() => navigate("/shelves")}>
+            <FontAwesomeIcon icon={faToiletPortable} /> &nbsp; View Shelves
           </Button>
 
           <Button className="check-in-button" variant="primary" size="sm" onClick={handleModalShow}>

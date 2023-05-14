@@ -343,7 +343,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
             <Breadcrumb.Item active>Import Products</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
-        <Col className='col-6'>
+        <Col className='col-6 mt-1'>
           <Form.Control type="file" name="file" className="custom-file-input" id="inputGroupFile" required onChange={handleImport}
             accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
         </Col>
