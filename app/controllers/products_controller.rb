@@ -12,19 +12,17 @@ class ProductsController < ApplicationController
     if product
       render json: product, status: :ok
     else 
-      render json: {error: "product not found"}, status: :not_found
+      render json: {error: "Product not found"}, status: :not_found
     end
   end
 
   def create
     if params["_json"].kind_of? Array
-
       new_products_array = Array.new
       params["_json"].each do |product|
-        imported_product = Product.create(name: product[:name], lot_number: product[:lot_number], weight: product[:weight], shelf_id: product[:shelf][:id], sap_material_number: product[:sap_material_number], expiration_date: product[:expiration_date], complete: product[:complete])
+        imported_product = Product.create(name: product[:name], lot_number: product[:lot_number], weight: product[:weight], shelf_id: product[:shelf_id], sap_material_number: product[:sap_material_number], expiration_date: product[:expiration_date], complete: product[:complete])
         new_products_array << imported_product
       end
-
       render json: new_products_array, status: :created
     else
       new_product = Product.create!(product_params)
@@ -49,7 +47,7 @@ class ProductsController < ApplicationController
         product.update!(product_params)
         render json: product, status: :ok
       else
-        render json: {error: "product record could not be located, update failed"}
+        render json: {error: "Product record could not be located, update failed"}
       end
     end
   end
@@ -58,9 +56,9 @@ class ProductsController < ApplicationController
     product = Product.find_by(id: params[:id])
     if product 
       product.destroy
-      render json: {message: "this product record was deleted"}, status: :ok
+      render json: {message: "This product record was deleted"}, status: :ok
     else
-      render json: {error: "product record could not be located, deletion fails"}, status: :not_found
+      render json: {error: "Product record could not be located, deletion failed"}, status: :not_found
     end
   end
 

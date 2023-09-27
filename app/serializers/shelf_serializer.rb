@@ -1,5 +1,7 @@
 class ShelfSerializer < ActiveModel::Serializer
-  attributes :id, :name
+  attributes :id, :name, :total_products
 
-  has_many :products, through: :products_shelves
+  def total_products
+    object.products.count
+  end
 end

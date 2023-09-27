@@ -12,7 +12,7 @@ import ExportExcel from './export_excel';
 import FilterComponent from './product_filter';
 import unilever_logo from "./imgs/unilever-logo.png"
 
-function ProductsTable({ products, setProducts, shelves }) {
+function ProductsTable({ products, setProducts, shelves, pendingTable }) {
 
   let defaultProductFormValues = {
     sap_material_number: "",
@@ -704,6 +704,7 @@ function ProductsTable({ products, setProducts, shelves }) {
           {products ? <DataTable
             columns={columns}
             data={filteredProducts}
+            progressPending = {pendingTable}
             pagination
             paginationPerPage={100}
             paginationRowsPerPageOptions={[50, 100, 150, 200, 250]}

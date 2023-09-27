@@ -1,11 +1,10 @@
-import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, Form, Dropdown, Breadcrumb, ProgressBar } from 'react-bootstrap';
 import { useState, useRef, useEffect } from 'react';
+import { Link } from "react-router-dom";
 import { read, utils } from 'xlsx';
 import DataTable from 'react-data-table-component';
 import Barcode from 'react-barcode';
-// import _ from "lodash";
 import uuid from 'react-uuid';
-// import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faThumbTack } from '@fortawesome/free-solid-svg-icons'
@@ -26,6 +25,8 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
   let colorIndex = 0;
   let colorAssignments = {};
 
+  const [showProgress, setShowProgress] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [importedProducts, setImportedProducts] = useState([]);
   const [importComplete, setImportComplete] = useState(false);
@@ -206,7 +207,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     // setSplitProductModalShow(false)
   }
 
-  const importedProductsBarcodes = importedProducts.map((importedProduct) => {
+  const importedProductsBarcodes = importedProducts?.map((importedProduct) => {
     let stringId = "00000000" + importedProduct.id.toString()
     return (
       <div className='pt-2 d-flex justify-content-center' key={importedProduct.id}>
@@ -297,7 +298,7 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       cell: (record) => {
         return (
           <Dropdown>
-            <Dropdown.Toggle variant="outline-success" size="sm" id="location-dropdown" disabled={importComplete}>
+            <Dropdown.Toggle variant="outline-success" size="sm" id="location-dropdown" disabled={importComplete || showProgress}>
               <FontAwesomeIcon icon={faThumbTack} /> &nbsp; Set Location
             </Dropdown.Toggle>
 
@@ -311,6 +312,53 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
     },
   ];
 
+  function updateProgressBar(updatedVal) {
+    setProgress(updatedVal);
+  };
+
+  async function handleChunksPost(batches, allNewProducts, totalCount) {
+    setProgress(5);
+    let completed = 0;
+
+    for (let i = 0; i < batches.length; i++) {
+      const recordSet = batches[i];
+
+      let cleanRecordSet = recordSet.map(record => {
+        let clean = {};
+        for (const key in record) {
+          if (key == "shelf") {
+            clean["shelf_id"] = record.shelf.id;
+          } else if (key !== "uuid" && key !== "colorId" && key !== "allow_split") {
+            clean[key] = record[key];
+          }
+        }
+        return clean;
+      })
+
+      await fetch('/api/products', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleanRecordSet)
+      })
+        .then(response => response.json())
+        .then(addedProducts => {
+          allNewProducts = [...allNewProducts, addedProducts];
+        })
+      completed += recordSet.length;
+      let updatedProgValue = parseFloat(((completed / totalCount) * 100).toFixed(2));
+      updateProgressBar(updatedProgValue);
+    }
+
+    let flattenedAllNewProducts = allNewProducts.flat();
+    let allProducts = [...products, flattenedAllNewProducts];
+    let flattenedProducts = allProducts.flat();
+
+    setProducts(flattenedProducts);
+    setImportedProducts(flattenedAllNewProducts);
+    setImportComplete(true);
+    setShowProgress(false);
+  }
+
   function handleBulkPost() {
     let invalidPendingProductRecords = pendingProducts.filter((pendingProduct) => !pendingProduct.shelf.id)
 
@@ -318,18 +366,18 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
       let message = invalidPendingProductRecords.length === 1 ? invalidPendingProductRecords.length + " product does" : invalidPendingProductRecords.length + " products do"
       alert(`${message} not have a location. Use the Set Location dropdown to select each products location, then resubmit.`)
     } else {
-      fetch('/api/products', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingProducts)
-      })
-        .then(response => response.json())
-        .then(newProducts => {
-          let allProducts = [...products, newProducts]
-          setProducts(allProducts.flat())
-          setImportedProducts(newProducts)
-        })
-      setImportComplete(true)
+      const chunks = (a, size) => Array.from(
+        new Array(Math.ceil(a.length / size)),
+        (_, i) => a.slice(i * size, i * size + size)
+      );
+
+      let totalCount = pendingProducts.length;
+      let allNewProducts = [];
+      const batches = chunks(pendingProducts, 50);
+
+      setShowProgress(true);
+
+      handleChunksPost(batches, allNewProducts, totalCount)
     }
   }
 
@@ -339,46 +387,64 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         <Col className='col-6'>
           <h3>Import Products from an Excel File</h3>
           <Breadcrumb>
-            <Breadcrumb.Item href="/">Products Records</Breadcrumb.Item>
+            <Breadcrumb.Item linkAs={Link} linkProps={ {to: "/"} }>Products Records</Breadcrumb.Item>
             <Breadcrumb.Item active>Import Products</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
         <Col className='col-6 mt-1'>
-          <Form.Control type="file" name="file" className="custom-file-input" id="inputGroupFile" required onChange={handleImport}
+          <Form.Control disabled={shelves.length == 0 || products.length == 0} type="file" name="file" className="custom-file-input" id="inputGroupFile" required onChange={handleImport}
             accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
         </Col>
       </Row>
 
-
-      <Row>
-        <Col className='col-12 mt-4' ref={scrollToRef}>
-          {pendingProducts ? <DataTable
-            columns={columns}
-            data={pendingProducts}
-            conditionalRowStyles={conditionalRowStyles}
-            pagination
-            onChangePage={resettingPaginate}
-            paginationPerPage={50}
-            paginationRowsPerPageOptions={[50, 100, 150, 200]}
-            paginationResetDefaultPage={resetImportPaginationToggle} />
-            : <></>}
-        </Col>
-      </Row>
-
-      <Row className='m-4'>
-        {pendingProducts.length ?
-          <>
-            <Col className='col-10 d-flex justify-content-end pe-0'>
-              <Button size="sm" variant='primary' disabled={!importComplete} className={!importComplete ? "custom-disabled-button" : ""} onClick={() => handleImportProductsSubmit()}>Print Imported Product Labels</Button>
+      {shelves.length == 0 || products.length == 0 ?
+        <Row className='justify-content-center'>
+          <Col className='col-7 mt-5'>
+            <ProgressBar animated striped variant="warning" now={100} />
+            <p className='text-center'>Loading the database, this may take a moment.</p>
+          </Col>
+        </Row> :
+        <div>
+          <Row>
+            <Col className='col-12 mt-4' ref={scrollToRef}>
+              {pendingProducts ? <DataTable
+                columns={columns}
+                data={pendingProducts}
+                conditionalRowStyles={conditionalRowStyles}
+                pagination
+                onChangePage={resettingPaginate}
+                noDataComponent="Upload a file above to import new products."
+                paginationPerPage={50}
+                paginationRowsPerPageOptions={[50, 100, 150, 200]}
+                paginationResetDefaultPage={resetImportPaginationToggle} />
+                : <></>}
             </Col>
-            <Col className='col-2 d-flex justify-content-end ps-0'>
-              <Button size="sm" variant='primary' disabled={importComplete} className={importComplete ? "custom-disabled-button" : ""} onClick={() => handleBulkPost()}>Publish Imported Records</Button>
-            </Col>
-          </> :
-          <></>
-        }
+          </Row>
 
-      </Row>
+          <Row className='m-4'>
+            {pendingProducts.length ?
+              <>
+                <Col className="col-7">
+                  <div className={showProgress ? '' : 'd-none'}>
+                    <ProgressBar animated striped now={progress} label={`${progress}%`} />
+                    <span>Importing product records...</span>
+                  </div>
+                </Col>
+                <Col className='col-3 d-flex justify-content-end pe-0'>
+                  <Button size="sm" variant='primary' disabled={!importComplete || showProgress} className={!importComplete ? "custom-disabled-button" : ""} onClick={() => handleImportProductsSubmit()}>Print Imported Product Labels</Button>
+                </Col>
+                <Col className='col-2 d-flex justify-content-end ps-0'>
+                  <Button size="sm" variant='primary' disabled={importComplete || showProgress} className={importComplete ? "custom-disabled-button" : ""} onClick={() => handleBulkPost()}>Publish Imported Records</Button>
+                </Col>
+              </> :
+              <></>
+            }
+
+          </Row>
+        </div>
+      }
+
+
 
       {/* barcode print modal */}
       <Modal show={bulkPrintModalShow} onHide={handlePrintModalClose} size="lg">
@@ -432,7 +498,6 @@ function ImportProducts({ shelves, products, setProducts, pageTitle }) {
         </Modal.Body>
 
       </Modal> */}
-
     </Container>
   )
 }

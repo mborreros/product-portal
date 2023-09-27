@@ -1,5 +1,6 @@
 import { Container, Row, Col, Button, Modal, Breadcrumb } from 'react-bootstrap';
 import { useState, useRef, useEffect } from 'react';
+import { Link } from "react-router-dom";
 import DataTable from 'react-data-table-component';
 import { useReactToPrint } from 'react-to-print';
 import Barcode from 'react-barcode';
@@ -51,7 +52,7 @@ function ViewShelves({ shelves, pageTitle }) {
     },
     {
       name: 'on Shelf',
-      selector: row => row.products.length + " products",
+      selector: row => row.total_products + " products",
       sortable: true,
       wrap: true,
       compact: true,
@@ -98,7 +99,7 @@ function ViewShelves({ shelves, pageTitle }) {
         <Col className='col-10'>
           <h3>View Shelves</h3>
           <Breadcrumb>
-            <Breadcrumb.Item href="/">Products Records</Breadcrumb.Item>
+            <Breadcrumb.Item linkAs={Link} linkProps={ {to: "/"} }>Products Records</Breadcrumb.Item>
             <Breadcrumb.Item active>View Shelves</Breadcrumb.Item>
           </Breadcrumb>
         </Col>

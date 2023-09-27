@@ -14,11 +14,15 @@ function App() {
 
   const [products, setProducts] = useState([])
   const [shelves, setShelves] = useState([])
+  const [pendingTable, setPendingTable] = useState(true);
 
   useEffect(() => {
     fetch('/api/products')
       .then(response => response.json())
-      .then(fetchedProducts => setProducts(fetchedProducts))
+      .then(fetchedProducts => {
+        setProducts(fetchedProducts);
+        setPendingTable(false);
+      })
       .catch(error => console.log(error))
   }, [])
 
@@ -32,7 +36,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<ProductsTable products={products} setProducts={setProducts} shelves={shelves} />} />
+        <Route path="/" element={<ProductsTable products={products} setProducts={setProducts} shelves={shelves} pendingTable={pendingTable} />} />
         <Route path="/import" element={<ImportProducts shelves={shelves} products={products} setProducts={setProducts} pageTitle={"Import Products | Material Manager"}/>} />
         <Route path="/audit" element={<AuditShelf shelves={shelves} products={products} setProducts={setProducts} pageTitle={"Audit Shelf | Material Manager"} />} />
         <Route path="/shelves" element={<ViewShelves shelves={shelves} pageTitle={"View Shelves | Material Manager"} />} />

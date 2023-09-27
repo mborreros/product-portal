@@ -1,5 +1,6 @@
 import { Container, Row, Col, Button, Form, Breadcrumb, InputGroup } from 'react-bootstrap';
 import { useState, useRef, useEffect } from 'react';
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import DataTable from 'react-data-table-component';
 import moment from 'moment';
@@ -182,7 +183,7 @@ function AuditShelf({ shelves, products, setProducts, pageTitle }) {
         <Col className='col-12'>
           <h3>Audit Shelf Location</h3>
           <Breadcrumb>
-            <Breadcrumb.Item href="/">Products Records</Breadcrumb.Item>
+            <Breadcrumb.Item linkAs={Link} linkProps={ {to: "/"} }>Products Records</Breadcrumb.Item>
             <Breadcrumb.Item active>Audit Shelf</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
