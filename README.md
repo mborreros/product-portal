@@ -8,6 +8,7 @@ Current functionality:
 * check out product 
 * get a generated barcode and print for product
 * audit product shelves using barcode scan of shelf and product barcode scans
+* view all shelves and how many products they contain
 
 
 ## Deployment
