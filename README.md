@@ -7,6 +7,7 @@ Current functionality:
 * update product warehouse shelf location
 * check out product 
 * get a generated barcode and print for product
+* audit product shelves using barcode scan of shelf and product barcode scans
 
 
 ## Deployment
